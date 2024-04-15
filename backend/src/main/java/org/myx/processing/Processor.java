@@ -33,7 +33,7 @@ public class Processor {
             } else if (statement instanceof Select) {
 //                processSelect((Select) statement);
             } else if (statement instanceof Insert) {
-//                processInsert((Insert) statement);
+                processInsert((Insert) statement);
             } else if (statement instanceof Update) {
 //                processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
@@ -47,6 +47,14 @@ public class Processor {
         }
     }
 
+    private static void processInsert(Insert statement) {
+
+    }
+
+    /**
+     * 处理Create Table语句
+     * @param createTable
+     */
     private static void processCreate(CreateTable createTable) {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
 
@@ -65,39 +73,45 @@ public class Processor {
                 newTable.addColumn(columnDefinition.getColumnName(), columnDefinition.getColDataType().getDataType());
             }
             // 处理列约束
-            for (ConstraintType constraint : ConstraintType.values())
-            {
-                if (columnDefinition.toString().contains(constraint.name().replace("_", " "))) {
-                    newTable.addConstraint("PK_" + columnDefinition.getColumnName(), "PRIMARY KEY",
-                            null);
-                } else if (columnDefinition.toString().contains(constraint.name().replace("_", " "))) {
-                    newTable.addConstraint("NN_" + columnDefinition.getColumnName(), "NOT NULL",
-                            null);
-                } else if (columnDefinition.toString().contains(constraint.name().replace("_", " "))) {
-                    newTable.addConstraint("UK_" + columnDefinition.getColumnName(), "UNIQUE",
-                            null);
-                } else if (columnDefinition.toString().contains(constraint.name().replace("_", " "))) {
-                    int index = columnDefinition.getColumnSpecs().indexOf("CHECK");
-                    String checkCondition = columnDefinition.getColumnSpecs().get(index + 1);
-                    newTable.addConstraint("CK_" + columnDefinition.getColumnName(), "CHECK",
-                            checkCondition);
-                } else if (columnDefinition.toString().contains(constraint.name().replace("_", " "))) {
-                    int index = columnDefinition.getColumnSpecs().indexOf("DEFAULT");
-                    String defaultCondition = columnDefinition.getColumnSpecs().get(index + 1);
-                    newTable.addConstraint("DF_" + columnDefinition.getColumnName(), "DEFAULT",
-                            defaultCondition);
-                } else if (columnDefinition.toString().contains(constraint.name().replace("_", " "))) {
-                    int index = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
-                    String referenceCondition = columnDefinition.getColumnSpecs().get(index + 1); // 此处的主表名及列名的格式为a2(A)
-                    newTable.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY",
-                            referenceCondition);
+            for (ConstraintType constraint : ConstraintType.values()) {
+                String constraintName = constraint.name().replace("_", " ");
+                // 先判断有没有这个约束
+                if (columnDefinition.toString().contains(constraintName)) {
+                    // 再判断是哪个约束
+                    switch (constraint) {
+                        case PRIMARY_KEY:
+                            newTable.addConstraint("PK_" + columnDefinition.getColumnName(), "PRIMARY KEY", null);
+                            break;
+                        case NOT_NULL:
+                            newTable.addConstraint("NN_" + columnDefinition.getColumnName(), "NOT NULL", null);
+                            break;
+                        case UNIQUE:
+                            newTable.addConstraint("UK_" + columnDefinition.getColumnName(), "UNIQUE", null);
+                            break;
+                        case CHECK:
+                            int checkIndex = columnDefinition.getColumnSpecs().indexOf("CHECK");
+                            String checkCondition = columnDefinition.getColumnSpecs().get(checkIndex + 1);
+                            newTable.addConstraint("CK_" + columnDefinition.getColumnName(), "CHECK", checkCondition);
+                            break;
+                        case DEFAULT:
+                            int defaultIndex = columnDefinition.getColumnSpecs().indexOf("DEFAULT");
+                            String defaultCondition = columnDefinition.getColumnSpecs().get(defaultIndex + 1);
+                            newTable.addConstraint("DF_" + columnDefinition.getColumnName(), "DEFAULT", defaultCondition);
+                            break;
+                        case REFERENCES:
+                            int fkIndex = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
+                            String referenceCondition = columnDefinition.getColumnSpecs().get(fkIndex + 1) + columnDefinition.getColumnSpecs().get(fkIndex + 2);
+                            newTable.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY", referenceCondition);
+                            break;
+                    }
                 }
             }
 
+            // Todo: 处理表约束
+
+
         });
-
         db.addTable(newTable);
-
         FileUtils.writeObjectToFile(db, "./db.txt");
     }
 

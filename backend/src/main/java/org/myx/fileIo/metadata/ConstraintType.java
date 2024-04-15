@@ -2,10 +2,10 @@ package org.myx.fileIo.metadata;
 
 public enum ConstraintType {
     PRIMARY_KEY,
-    FOREIGN_KEY,
+    NOT_NULL,
     UNIQUE,
     CHECK,
-    NOT_NULL,
     DEFAULT,
-    REFERENCES
+    REFERENCES,
+    FOREIGN_KEY
 }

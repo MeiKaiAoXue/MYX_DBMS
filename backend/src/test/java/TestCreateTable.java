@@ -10,7 +10,7 @@ public class TestCreateTable {
     public void testCreateTable() {
         FileUtils.initDB("./db.txt");
         String sql2 = "Create Table BB (column1 INT DEFAULT 2);";
-        String sql3 = "CREATE TABLE AA (column1 INT, column2 VARCHAR(255) NOT NULL UNIQUE);";
+        String sql3 = "CREATE TABLE AA (column1 INT REFERENCES aa(a2), column2 VARCHAR(255) NOT NULL UNIQUE);";
         Processor.process(sql3);
 //        Processor.process(sql2);
         System.out.println("Create Table Test passed");
