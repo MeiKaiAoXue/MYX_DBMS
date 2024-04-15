@@ -1,0 +1,4 @@
+4月 12, 2024 11:14:34 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: CREATE TABLE
+4月 12, 2024 11:14:34 上午 org.myx.fileIo.Logging log
+信息: This is a test log message
