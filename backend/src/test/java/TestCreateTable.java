@@ -9,7 +9,7 @@ import java.util.List;
 public class TestCreateTable {
     public void testCreateTable() {
         FileUtils.initDB("./db.txt");
-        String sql2 = "Create Table BB (column1 INT DEFAULT 2);";
+        String sql2 = "Create Table BB (column1 INT CHECK (column1 > 2) );";
         String sql3 = "CREATE TABLE AA (column1 INT REFERENCES aa(a2), column2 VARCHAR(255) NOT NULL UNIQUE);";
         Processor.process(sql3);
 //        Processor.process(sql2);
@@ -23,9 +23,28 @@ public class TestCreateTable {
                 System.out.println("Column: " + column.getColumnName() + " " + column.getColumnType());
             }
             for (TableMetaData1.ConstraintsMetaData constraint : table.getConstraints()) {
-                System.out.println("Constraint: " + constraint.getConstraintName() + " " + constraint.getConstraintType() + " " + constraint.getConstraintCondition());
+                System.out.println("Constraint: " + constraint.getConstraintName() + " || " + constraint.getConstraintType() + " || " + constraint.getConstraintCondition());
             }
         }
+
+        String str = "(COLUMN1 > 2)";
+        str = str.replaceAll("\\((.*?)\\)", "$1");
+        String[] list = str.split(">");
+        if (list.length < 2) {
+            System.out.println("Invalid format: no '>' character found");
+        } else {
+            try {
+                int num = Integer.parseInt(list[1].trim());
+                System.out.println("inside: " + str);
+                System.out.println("num: " + num);
+                System.out.println("list: " + list[1]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid format: cannot parse '" + list[1] + "' as an integer");
+            }
+        }
+
+
+
     }
 
 //    public static void main(String[] args) {

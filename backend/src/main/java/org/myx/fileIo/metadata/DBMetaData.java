@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 保存数据库中所有表的元数据
+ */
 public class DBMetaData implements Serializable {
     private static final long serialVersionUID = 1L;
     private String dbName;
@@ -42,6 +45,15 @@ public class DBMetaData implements Serializable {
         return "DBMetaData{" +
                 "tables:" + tables +
                 '}';
+    }
+
+    public TableMetaData1 getTable(String tableName) {
+        for (TableMetaData1 table : tables) {
+            if (table.getTableName().equals(tableName)) {
+                return table;
+            }
+        }
+        return null;
     }
 
 

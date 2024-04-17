@@ -5,6 +5,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 保存表的元数据
+ */
 public class TableMetaData1 implements Serializable {
     private static final long serialVersionUID = 1L;
     private String tableName;
@@ -15,6 +18,16 @@ public class TableMetaData1 implements Serializable {
         this.tableName = tableName;
         this.columns = new ArrayList<>();
         this.constraints = new ArrayList<>();
+    }
+
+
+    public String getColumnType(String columnName) {
+        for (ColumnMetaData column : columns) {
+            if (column.columnName.equals(columnName)) {
+                return column.columnType;
+            }
+        }
+        return null;
     }
 
     public void addColumn(String columnName, String columnType) {
