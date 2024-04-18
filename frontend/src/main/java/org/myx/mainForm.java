@@ -1,4 +1,5 @@
-import org.myx.*;
+package org.myx;
+
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.metadata.DBMetaData;
 import org.myx.fileIo.metadata.TableMetaData1;
@@ -13,6 +14,7 @@ public class mainForm {
     private JTextArea SQLTextArea;
     private JTextArea resultTextArea;
     private JButton exeButton;
+    private JTextArea consoleArea;
 
     public mainForm(JFrame frame){
         //JTextArea自动换行
@@ -39,5 +41,9 @@ public class mainForm {
                 }
             }
         });
+    }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
     }
 }
