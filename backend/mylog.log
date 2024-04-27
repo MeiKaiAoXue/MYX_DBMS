@@ -2,3 +2,53 @@
 信息: Error processing SQL: CREATE TABLE
 4月 12, 2024 11:14:34 上午 org.myx.fileIo.Logging log
 信息: This is a test log message
+4月 27, 2024 3:10:41 下午 org.myx.fileIo.Logging log
+信息: This is a test log message
+4月 27, 2024 3:18:41 下午 org.myx.fileIo.Logging log
+信息: This is a test log message
+4月 27, 2024 3:19:54 下午 org.myx.fileIo.Logging log
+信息: This is a test log message
+4月 27, 2024 3:52:47 下午 org.myx.fileIo.Logging log
+信息: Table AA does not exist
+4月 27, 2024 3:52:47 下午 org.myx.fileIo.Logging log
+信息: Please create the table before inserting data
+4月 27, 2024 3:53:09 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value 'HELLO'
+4月 27, 2024 3:56:13 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+4月 27, 2024 3:58:13 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+4月 27, 2024 4:01:33 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+4月 27, 2024 4:02:25 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+4月 27, 2024 4:02:41 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+4月 27, 2024 4:06:23 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
+4月 27, 2024 4:11:07 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value 'HELLO'
+4月 27, 2024 4:21:18 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value -1
+4月 27, 2024 4:21:53 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value -1
+4月 27, 2024 4:26:09 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value -1
+4月 27, 2024 4:41:44 下午 org.myx.fileIo.Logging log
+信息: Value 'HELLO' is not valid for column COLUMN2 of type VARCHAR(2)
+4月 27, 2024 5:30:40 下午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+4月 27, 2024 5:31:26 下午 org.myx.fileIo.Logging log
+信息: Number of columns does not match number of values
+4月 27, 2024 5:33:42 下午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+4月 27, 2024 5:34:43 下午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+4月 27, 2024 5:35:11 下午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+4月 27, 2024 5:43:08 下午 org.myx.fileIo.Logging log
+信息: Value NULL is not valid for column COLUMN2 of type VARCHAR(20)
+4月 27, 2024 5:51:58 下午 org.myx.fileIo.Logging log
+信息: Value NULL is not valid for column COLUMN2 of type VARCHAR(20)
+4月 27, 2024 5:52:40 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
