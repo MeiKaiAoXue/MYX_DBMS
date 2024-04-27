@@ -105,6 +105,15 @@ public class TableMetaData1 implements Serializable {
         return columns;
     }
 
+    public int getColumnIndex(String columnName) {
+        for (int i = 0; i < columns.size(); i++) {
+            if (columns.get(i).columnName.equals(columnName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public List<ConstraintsMetaData> getConstraints() {
         return constraints;
     }

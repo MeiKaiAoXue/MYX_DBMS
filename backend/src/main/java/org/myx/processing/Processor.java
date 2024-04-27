@@ -1,5 +1,6 @@
 package org.myx.processing;
 
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
@@ -55,7 +56,7 @@ public class Processor {
 
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
-        List<List<Object>> values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
 
         if (table == null) {
             Logging.log("Table " + tableName + " does not exist");
@@ -63,42 +64,123 @@ public class Processor {
             return;
         }
 
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
         // 单行插入
         if (statement.getColumns() != null) {
             ExpressionList<Column> columns = statement.getColumns();
             if (statement.getSelect() != null) {
-                for (int i = 0; i < columns.size(); i++) {
-                    String columnName = columns.get(i).getColumnName();
-                    String columnType = table.getColumnType(columnName);
-                    String value = statement.getSelect().getValues().getExpressions().get(i).toString();
-                    // 判断个数是否匹配,个数不匹配除了default全部写null
-                    // Todo 现在只支持全部column都有值，不支持部分有值，也就不存在default判断
-                    if (columns.size() != statement.getSelect().getValues().getExpressions().size()) {
-                        Logging.log("Number of columns does not match number of values");
-                        return;
+                // 判断insert语句中字段数和值数是否匹配
+                int valueNum = statement.getSelect().getValues().getExpressions().size();
+                if (columns.size() != valueNum) {
+                    Logging.log("Number of columns does not match number of values");
+                    return;
+                }
+
+                List<Object> row = new java.util.ArrayList<>();
+                // 判断insert的字段数和tableMetaData中的字段数是否匹配
+                if (columns.size() == table_columns.size()) {
+                    System.out.println("insert字段数和tableMetaData字段数相等");
+                    // 赋值到row中
+                    for (int i = 0; i < columns.size(); i++) {
+                        row.add(statement.getSelect().getValues().getExpressions().get(i).toString());
                     }
-                    // 判断每个类型是否匹配
-                    if (!isValid(value, columnType)) {
-                        Logging.log("Value " + value + " is not valid for column " + columnName + " of type " + columnType);
-                        return;
+
+                    // 判断每个字段的值是否匹配
+                    for (int i = 0; i < row.size(); i++) {
+                        String columnName = table_columns.get(i).getColumnName();
+                        String columnType = table.getColumnType(columnName);
+                        String value = row.get(i).toString();
+
+                        // Todo 现在只支持全部column都有值，不支持部分写DEFAULT
+
+                        // 判断每个类型是否匹配
+                        if (!isValid(value, columnType)) {
+                            Logging.log("Value " + value + " is not valid for column " + columnName + " of type " + columnType);
+                            return;
+                        }
+                        // 判断约束条件是否匹配
+                        if (!checkConstraints(db, table, all_values, columnName, value)) {
+                            Logging.log("Constraint check failed for column " + columnName + " with value " + value);
+                            return;
+                        }
                     }
-                    // 判断约束条件是否匹配
-                    if (checkConstraints(db, table, values, columnName, value)) {
-                        Logging.log("Constraint check failed for column " + columnName + " with value " + value);
-                        return;
+
+                } else if (columns.size() < table_columns.size()) {
+                    System.out.println("insert字段数小于tableMetaData字段数");
+                    ExpressionList<?> expressions = statement.getSelect().getValues().getExpressions();
+                    // 用null填充,假设元数据字段顺序和insert字段顺序一致
+                    for (int i = 0; i < table_columns.size(); i++) {
+                        boolean flag = false;
+                        String tableColumnName = table_columns.get(i).getColumnName();
+                        for (int j = 0; j < columns.size(); j++) {
+                            String insertColumnName = columns.get(j).getColumnName();
+                            if (tableColumnName.equals(insertColumnName)) {
+                                flag = true;
+                                row.add(expressions.get(j).toString().replace("(", "").replace(")", "").strip());
+                                break;
+                            }
+                        }
+                        if (!flag) {
+                            row.add("NULL");
+                        }
                     }
+
+
+                    // 判断每个字段的值是否匹配
+                    for (int i = 0; i < row.size(); i++) {
+                        String columnName = table_columns.get(i).getColumnName();
+                        String columnType = table.getColumnType(columnName);
+                        String value = row.get(i).toString();
+
+                        // Todo 现在只支持全部column都有值，不支持部分写DEFAULT
+
+                        // 判断每个类型是否匹配
+                        if (!isValid(value, columnType)) {
+                            Logging.log("Value " + value + " is not valid for column " + columnName + " of type " + columnType);
+                            return;
+                        }
+                        // 判断约束条件是否匹配
+                        if (!checkConstraints(db, table, all_values, columnName, value)) {
+                            Logging.log("Constraint check failed for column " + columnName + " with value " + value);
+                            return;
+                        }
+                    }
+
+                } else {
+                    Logging.log("insert字段数大于tableMetaData字段数");
+                    return;
+                }
+
+                if (row.size() == table_columns.size()) {
+                    all_values.add(row);
+                    FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+                    System.out.println("Inserted row: " + row);
+                } else {
+                    Logging.log("Row size does not match column size");
                 }
             }
         }
+
     }
 
-    private static boolean checkConstraints(DBMetaData db, TableMetaData1 tableMD, List<List<Object>> values, String columnName, String value) {
+    private static boolean checkConstraints(DBMetaData db, TableMetaData1 tableMD,
+                                            List<List<Object>> values, String columnName,
+                                            String value) {
         List<TableMetaData1.ConstraintsMetaData> constraints = tableMD.getConstraints();
-        int index = tableMD.getColumns().indexOf(columnName);
+//        System.out.println("约束条件");
+//        for (TableMetaData1.ConstraintsMetaData constraintsMetaData : constraints)
+//        {
+//            System.out.println(constraintsMetaData.getConstraintName());
+//        }
+
+        System.out.println("字段名：" + columnName);
+        int index = tableMD.getColumnIndex(columnName);
+        System.out.println("字段索引：" + index);
         for (TableMetaData1.ConstraintsMetaData constraint : constraints) {
             // 判断是否是这个字段的约束
             if (!constraint.getConstraintName().contains(columnName))
             {
+                System.out.println("不是这个字段的约束");
                 continue;
             }
             String constraintCondition = "";
@@ -116,7 +198,7 @@ public class Processor {
                     }
                     break;
                 case "NOT NULL":
-                    if (value == null || value.isEmpty())
+                    if (value.equals("NULL") || value.isEmpty())
                     {
                         return false;
                     }
@@ -147,6 +229,7 @@ public class Processor {
                                 }
                             }
                             if (Integer.parseInt(value) <= num) {
+//                                System.out.println("Invalid format: " + value + " is not greater than " + num);
                                 return false;
                             }
                         } else if (constraintCondition.contains("<")) {
@@ -237,6 +320,7 @@ public class Processor {
 //                    }
 //                    break;
                 case "FOREIGN KEY":
+                    // Todo: 外键约束目前不要求
                     constraintCondition = constraint.getConstraintCondition();
                     String[] parts = constraintCondition.split("\\(|\\)");
                     String beforeParenthesis = parts[0];
@@ -266,17 +350,44 @@ public class Processor {
 
     // 给insert判断值和字段类型是否匹配，DATE类型暂且当作String处理
     private static boolean isValid(String value, String columnType) {
-        // Check if the value is valid for the column type
-        // For example, if the column type is INT, check if the value can be parsed to an integer
+        System.out.println("字段类型是： " + columnType);
         if (columnType.equals("INT")) {
+            // 判断是否为int
             try {
                 Integer.parseInt(value);
             } catch (NumberFormatException e) {
                 return false;
             }
-        } else if (columnType.equals("VARCHAR")) {
-            // Check if the value is a string
-            return value.startsWith("'") && value.endsWith("'");
+        } else if (columnType.contains("VARCHAR")) {
+            // 判断是否为长度合适的字符串
+
+            int length = Integer.parseInt(columnType.replaceAll("[^0-9]", ""));
+//            System.out.println("长度是： " + length);
+            if (value.equals("NULL")) return true; // NULL当作字符串处理
+            else if (!(value.startsWith("'") && value.endsWith("'"))) return false;
+
+            if (value.length() - 2 > length) return false;
+        } else if (columnType.contains("CHAR")) {
+            // 判断是否为长度合适的字符串
+            int length = Integer.parseInt(columnType.replaceAll("[^0-9]", ""));
+            if (value.equals("NULL")) return true;
+            else if (!(value.startsWith("'") && value.endsWith("'"))) return false;
+
+            if (value.length() - 2 != length) return false;
+        } else if (columnType.equals("DATE")) {
+            // 判断是否为日期格式
+            // Todo: 暂时不做日期格式判断,当作字符串处理
+//            if (!(value.startsWith("'") && value.endsWith("'"))) return false;
+//            if (value.length() != 10) return false;
+//            String[] parts = value.substring(1, value.length() - 1).split("-");
+//            if (parts.length != 3) return false;
+//            try {
+//                Integer.parseInt(parts[0]);
+//                Integer.parseInt(parts[1]);
+//                Integer.parseInt(parts[2]);
+//            } catch (NumberFormatException e) {
+//                return false;
+//            }
         }
 
         return true;
