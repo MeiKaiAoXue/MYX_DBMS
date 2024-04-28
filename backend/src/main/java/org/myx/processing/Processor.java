@@ -10,8 +10,12 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
 import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.FromItem;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
+import org.jetbrains.annotations.NotNull;
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
 import org.myx.fileIo.metadata.ConstraintType;
@@ -20,7 +24,11 @@ import org.myx.fileIo.metadata.DBMetaData;
 import org.myx.fileIo.metadata.TableMetaData1;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Processor {
 
@@ -35,7 +43,7 @@ public class Processor {
             } else if (statement instanceof Alter) {
 //                processAlter((Alter) statement);
             } else if (statement instanceof Select) {
-//                processSelect((Select) statement);
+                processSelect((Select) statement);
             } else if (statement instanceof Insert) {
                 processInsert((Insert) statement);
             } else if (statement instanceof Update) {
@@ -51,7 +59,81 @@ public class Processor {
         }
     }
 
-    private static void processInsert(Insert statement) throws IOException {
+    /**
+     * 处理select Table语句
+     * @param Select
+     */
+    private  static  void  processSelect(Select statement) throws  IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        PlainSelect plainSelect = statement.getPlainSelect();
+        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
+        System.out.println("【查询字段】：" + plainSelect.getSelectItems());
+        System.out.println("【FROM 表】：" + plainSelect.getFromItem());
+        System.out.println("【WHERE 子句】：" + plainSelect.getWhere());
+        System.out.println("【JOIN 子句】：" + plainSelect.getJoins());
+        System.out.println("【LIMIT 子句】：" + plainSelect.getLimit());
+        System.out.println("【OFFSET 子句】：" + plainSelect.getOffset());
+        System.out.println("【ORDER BY 子句】：" + plainSelect.getOrderByElements());
+        //获取查询列名
+        List<String> selectItemStrings = plainSelect.getSelectItems().stream()
+                .map(Object::toString) // 假设SelectItem<?>对象的toString()方法返回所需字符串
+                .collect(Collectors.toList());
+        //获取表名
+        FromItem tableName=plainSelect.getFromItem();
+        if(tableName==null){
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        //获取表中的所有列名
+        TableMetaData1 table = db.getTable(tableName.toString());
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+
+        List<Integer> indexList = new ArrayList<>();
+        //*查询
+        if(selectItemStrings.get(0).equals("*")){
+            for (Object obj : all_values) {
+                System.out.println(obj);
+            }
+        }else{
+            //指定列输出
+            for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
+                    indexList.add(x);
+                    j++;
+                    index++;
+                }
+            }
+            if(indexList.size()!=selectItemStrings.size()){
+                //TODO:指明不存在的列名
+                System.out.println("有查询列不存在于表中");
+                Logging.log("有查询列不存在于表中");
+            }
+            //输出
+            for (int x=0;x<selectItemStrings.size();x++){
+                System.out.print(selectItemStrings.get(x));
+                System.out.print("    ");
+            }
+            System.out.println("");
+            for(int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                for (int colIndex=0;colIndex<all_values.get(rowIndex).size();colIndex++){
+                    for(int alIndex=0;alIndex<indexList.size();alIndex++){
+                        if(colIndex==indexList.get(alIndex)){
+                            //TODO:控制输出格式，使之对齐
+                            System.out.print(all_values.get(rowIndex).get(colIndex));
+                            System.out.print("    ");
+                        }
+                    }
+                }
+                System.out.println("");
+            }
+        }
+
+    }
+
+
+    private static void processInsert(@NotNull Insert statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
 
         String tableName = statement.getTable().getName();
@@ -76,7 +158,7 @@ public class Processor {
                     return;
                 }
 
-                List<Object> row = new java.util.ArrayList<>();
+                List<Object> row = new ArrayList<>();
                 // 判断insert的字段数和tableMetaData中的字段数是否匹配
                 if (columns.size() == table_columns.size()) {
                     System.out.println("insert字段数和tableMetaData字段数相等");
@@ -491,3 +573,4 @@ public class Processor {
 //        else return "";
 //    }
 }
+
