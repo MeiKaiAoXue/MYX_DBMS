@@ -1,0 +1,30 @@
+4月 28, 2024 4:40:18 下午 org.myx.fileIo.Logging log
+信息: Table AA does not exist
+4月 28, 2024 4:40:18 下午 org.myx.fileIo.Logging log
+信息: Please create the table before inserting data
+4月 28, 2024 4:41:12 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
+4月 28, 2024 6:55:03 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 28, 2024 6:55:12 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 28, 2024 6:56:40 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 28, 2024 6:59:51 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 28, 2024 7:00:14 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 28, 2024 7:01:48 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 29, 2024 2:25:54 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 29, 2024 3:25:39 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 29, 2024 3:31:59 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 29, 2024 3:32:44 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 29, 2024 3:33:07 下午 org.myx.fileIo.Logging log
+信息: 有查询列不存在于表中
+4月 29, 2024 3:36:16 下午 org.myx.fileIo.Logging log
+信息: where后有查询列不存在于表中
