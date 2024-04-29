@@ -16,6 +16,8 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 import org.jetbrains.annotations.NotNull;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.update.Update;
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
 import org.myx.fileIo.metadata.ConstraintType;
@@ -641,7 +643,8 @@ public class Processor {
     }
 
 
-    private static void processInsert(@NotNull Insert statement) throws IOException {
+
+    private static void processInsert(Insert statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
 
         String tableName = statement.getTable().getName();
@@ -666,7 +669,7 @@ public class Processor {
                     return;
                 }
 
-                List<Object> row = new ArrayList<>();
+                List<Object> row = new java.util.ArrayList<>();
                 // 判断insert的字段数和tableMetaData中的字段数是否匹配
                 if (columns.size() == table_columns.size()) {
                     System.out.println("insert字段数和tableMetaData字段数相等");
