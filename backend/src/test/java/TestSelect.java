@@ -21,11 +21,22 @@ public class TestSelect {
         String insert_sql3 = "INSERT INTO AA (column1, column2) VALUES (1, 'hello')";
         String insert_sql4 = "INSERT INTO AA (column1, column2) VALUES (2, 'bye')";
         String insert_sql5 = "INSERT INTO AA (column1, column2) VALUES (3, 'ciao')";
+        String insert_sql6 = "INSERT INTO AA (column1, column2) VALUES (4, 'hello1')";
         Processor.process(insert_sql3);
         Processor.process(insert_sql4);
         Processor.process(insert_sql5);
-        //String sqlSelect="select column1,column2 from AA";
-        String sqlSelect="select column1,column2 from AA";
+        Processor.process(insert_sql6);
+        //String sqlSelect="select * from AA";    //通过
+        //String sqlSelect="select column1,column2 from AA";    //通过
+        //String sqlSelect="select column2 from AA";    //通过
+        //String sqlSelect="select * from AA where column1 = '1'"; //通过
+        //String sqlSelect="select column2 from AA where column1 = '3'";
+        //String sqlSelect="select column2 from AA where column1 < '3'";// 通过
+        //String sqlSelect="select * from AA where column1 < '3'";// 通过
+        //String sqlSelect="select column1,column2 from AA where column1 < '3'";// 通过
+        //String sqlSelect="select * from AA where column1 >= '2'";// 通过
+        //String sqlSelect="select column1,column2 from AA where column1 <= '2'";
+        String sqlSelect="select column1,column2 from AA where column2 <= 'ciao'";
         Processor.process(sqlSelect);
     }
 }
