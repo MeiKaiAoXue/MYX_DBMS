@@ -1,6 +1,8 @@
 package org.myx.fileIo.metadata;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class UserMetaData {
     public enum UserType {
@@ -13,10 +15,20 @@ public class UserMetaData {
     }
 
     public enum privilege {
-        READ,
-        INSERT,
-        UPDATE,
-        DELETE
+        READ("read"),
+        INSERT("insert"),
+        UPDATE("update"),
+        DELETE("delete");
+
+        private final String action;
+
+        privilege(String action){
+            this.action = action;
+        }
+
+        public String getAction(){
+            return action;
+        }
     }
 
     private String userName;
@@ -24,13 +36,14 @@ public class UserMetaData {
     private UserType userType;
     private UserStatus userStatus;
     private List<privilege> userPrivileges;
+    private Set<privilege> privileges;
 
     public UserMetaData(String userName, String password, UserType userType, UserStatus userStatus, List<privilege> userPrivileges) {
         this.userName = userName;
         this.password = password;
         this.userType = userType;
         this.userStatus = userStatus;
-        this.userPrivileges = userPrivileges;
+        this.privileges = new HashSet<>();
     }
 
     public String getUserName() {
@@ -81,6 +94,9 @@ public class UserMetaData {
         userPrivileges.remove(userPrivilege);
     }
 
+    public boolean hasPrivilege(privilege userPrivilege) {
+        return privileges.contains(userPrivilege);
+    }
     public String toString() {
         return "UserMetaData{" +
                 "userName='" + userName + '\'' +
