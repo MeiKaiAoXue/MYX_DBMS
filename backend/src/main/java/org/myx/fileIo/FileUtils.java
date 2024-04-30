@@ -38,5 +38,14 @@ public class FileUtils {
         writeObjectToFile(db, filePath);
     }
 
+    public static void deleteDB(String filePath){
+        File file = new File(filePath);
+        if (file.delete()){
+            System.out.println("d=Delete database");
+        }else{
+            System.out.println("Failed to delete the database");
+        }
+    }
+
 
 }

@@ -22,7 +22,7 @@ import org.myx.fileIo.metadata.TableMetaData1;
 import java.io.IOException;
 import java.util.List;
 
-public class Processor {
+public class    Processor {
 
     public static void process(String sql){
         try {
