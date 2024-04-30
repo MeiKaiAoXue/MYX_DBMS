@@ -8,6 +8,7 @@ import org.myx.processing.Processor;
 public class Main {
     public static void main(String[] args) {
         FileUtils.initDB("./db.txt");
+        FileUtils.initAdminUser("admin","123456","./users.txt");//初始化数据库管理员
         String sql = "CREATE TABLE AA (column1 INT, column2 VARCHAR(255));";
         String sql2 = "Create Table BB (column1 INT DEFAULT 2);";
         String sql3 = "CREATE TABLE AA (column1 INT, column2 VARCHAR(255));";

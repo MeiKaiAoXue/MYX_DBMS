@@ -1,5 +1,6 @@
 package org.myx.fileIo.metadata;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
@@ -18,7 +19,11 @@ public class UserMetaData {
         READ("read"),
         INSERT("insert"),
         UPDATE("update"),
-        DELETE("delete");
+        DELETE("delete"),
+        CREATE_USER("create_user"),
+        DELETE_USER("delete_user"),
+        DELETE_DATABASE("delete_database");
+
 
         private final String action;
 
@@ -36,14 +41,18 @@ public class UserMetaData {
     private UserType userType;
     private UserStatus userStatus;
     private List<privilege> userPrivileges;
-    private Set<privilege> privileges;
+    public static Set<privilege> privileges;
 
-    public UserMetaData(String userName, String password, UserType userType, UserStatus userStatus, List<privilege> userPrivileges) {
+    public UserMetaData(String userName, String password,Set<privilege> privileges) {
         this.userName = userName;
         this.password = password;
-        this.userType = userType;
-        this.userStatus = userStatus;
-        this.privileges = new HashSet<>();
+//        this.userType = userType;
+//        this.userStatus = userStatus;
+        this.privileges = privileges;
+    }
+    public static UserMetaData createAdminUser(String userName, String password) {
+        privileges = new HashSet<>(Arrays.asList(privilege.values()));
+        return new UserMetaData(userName, password, privileges);
     }
 
     public String getUserName() {
@@ -81,9 +90,12 @@ public class UserMetaData {
     public List<privilege> getUserPrivileges() {
         return userPrivileges;
     }
+    public Set<privilege> getPrivileges() {
+        return privileges;
+    }
 
-    public void setUserPrivileges(List<privilege> userPrivileges) {
-        this.userPrivileges = userPrivileges;
+    public void setUserPrivileges(Set<privilege> privileges) {
+        this.privileges = privileges;
     }
 
     public void addPrivilege(privilege userPrivilege) {
