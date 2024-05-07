@@ -26,7 +26,7 @@ public class TestUpdate {
         Processor.process(insert_sql4);
         Processor.process(insert_sql5);
         Processor.process(insert_sql6);
-        String update_sql1="UPDATE AA SET column1 = 2 where column2 = 'hello'";//测试成功
+        //String update_sql1="UPDATE AA SET column1 = 2 where column2 = 'hello'";//测试成功
         String update_sql2="UPDATE AA SET column2 = 'okay' where column1 = '1'";
         Processor.process(update_sql2);
         String select_sql="select * from AA";
