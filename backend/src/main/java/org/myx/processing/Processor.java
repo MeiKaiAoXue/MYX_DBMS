@@ -15,6 +15,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.statement.update.UpdateSet;
 import org.jetbrains.annotations.NotNull;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
@@ -36,7 +37,7 @@ import java.util.regex.Pattern;
 
 public class Processor {
 
-    public static void process(String sql){
+    public static void process(String sql) {
         try {
             Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
 
@@ -51,7 +52,7 @@ public class Processor {
             } else if (statement instanceof Insert) {
                 processInsert((Insert) statement);
             } else if (statement instanceof Update) {
-//                processUpdate((Update) statement);
+                processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
 //                processDelete((Delete) statement);
             } else {
@@ -61,6 +62,117 @@ public class Processor {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 处理update Table语句
+     *
+     * @param Update
+     */
+    private static void processUpdate(Update statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        String tableName = statement.getTable().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+        //UPDATE AA SET column1 = 2 where column2 = 'hello'
+        System.out.println(statement.getTable());
+        //(Update) CCJSqlParserUtil.parse(statement);
+        System.out.println("【更新目标表】：" + statement.getTable());
+        List<UpdateSet> updateSets = statement.getUpdateSets();
+        for (UpdateSet updateSet : updateSets) {
+            System.out.println("【更新字段】：" + updateSet.getColumns());
+            System.out.println("【更新字】：" + updateSet.getValues());
+        }
+        System.out.println("【更新条件】：" + statement.getWhere());
+        System.out.println("--------------------------------------------------------");
+        String changeValue = updateSets.get(0).getValues().toString();
+        //找到对应的列
+        int changeColumnIndex = -9999;
+        for (int i = 0; i < table_columns.size(); i++) {
+            //只有一列更新，所以updateSets.get(0)
+            if (table_columns.get(i).getColumnName().equals(updateSets.get(0).getColumns().toString())) {
+                changeColumnIndex = i;
+                break;
+            }
+        }
+        //找到all_values中的对应列修改值
+        //判断每个字段的值是否匹配
+        String columnName = table_columns.get(changeColumnIndex).getColumnName();
+        if (!isValid(updateSets.get(0).getValues().toString(), table.getColumnType(columnName))) {
+            Logging.log("Value " + updateSets.get(0).getValues().toString() + " is not valid for column " + columnName + " of type " + table.getColumnType(columnName));
+            return;
+        } else {
+            //字段值匹配测试输出
+            System.out.println("Value " + updateSets.get(0).getValues().toString() + " is valid for column " + columnName + " of type " + table.getColumnType(columnName));
+        } // 判断约束条件是否匹配
+        if (!checkConstraints(db, table, all_values, columnName, updateSets.get(0).getValues().toString())) {
+            Logging.log("Constraint check failed for column " + columnName + " with value " + updateSets.get(0).getValues().toString());
+            return;
+        } else {
+            //约束匹配测试输出
+            System.out.println("Constraint check passed for column " + updateSets.get(0).getValues().toString() + " is valid for column " + columnName + " of type " + table.getColumnType(columnName));
+        }
+
+        //对比where确定修改行坐标
+        String whereStatement = statement.getWhere().toString();
+        //String input = "COLUMN2 = 'HELLO'";
+
+        // 查找等号的位置
+        int equalSignIndex = whereStatement.indexOf('=');
+        String whereColumnName=null;
+        String whereValue=null;
+        String equalSign=null;
+        // 检查是否找到了等号
+        if (equalSignIndex != -1) {
+            // 提取列名（等号之前的内容）
+            whereColumnName = whereStatement.substring(0, equalSignIndex).trim();
+            // 提取值（等号之后的内容，并去掉前后的引号）
+            whereValue = whereStatement.substring(equalSignIndex + 1).trim();
+            // 去除值两边的引号（如果有的话）
+            if (whereValue.startsWith("'") && whereValue.endsWith("'")) {
+                whereValue = whereValue.substring(1, whereValue.length() - 1);
+            }
+
+            // 等号本身
+            equalSign = "=";
+
+            // 打印结果
+            System.out.println("Column Name: " + whereColumnName);
+            System.out.println("Equal Sign: " + equalSign);
+            System.out.println("Value: " + whereValue);
+        } else {
+            System.out.println("No equal sign found in the string.");
+        }
+        int rowIndex=-9999;
+        int whereColIndex=-9999;
+        for(int i=0;i<table_columns.size();i++){
+            if(table_columns.get(i).getColumnName().toString().equals(whereColumnName)){
+                whereColIndex=i;
+                break;
+            }
+        }
+        if(whereColIndex<0){
+            Logging.log("where 语句中的列不存在 ");
+            System.out.println("where 语句中的列不存在 ");
+            return;
+        }
+        for(int i=0;i<all_values.size();i++){
+            String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+            if(compareValue.equals(whereValue)){
+                rowIndex=i;
+                break;
+            }
+        }
+        //将all_values中的第rowIndex行的第changeColumnIndex列改为对应值
+        all_values.get(rowIndex).set(changeColumnIndex,changeValue);
+        FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+
     }
 
     /**
