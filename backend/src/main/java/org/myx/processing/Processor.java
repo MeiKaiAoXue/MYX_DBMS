@@ -54,7 +54,7 @@ public class Processor {
             } else if (statement instanceof Update) {
                 processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
-//                processDelete((Delete) statement);
+                processDelete((Delete) statement);
             } else {
                 Logging.log("Error processing SQL: " + sql);
                 throw new IllegalArgumentException("Unsupported SQL statement: " + sql);
@@ -62,6 +62,147 @@ public class Processor {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    /**
+     * 处理DELETE Table语句
+     *
+     * @param Delete
+     */
+    private static void processDelete(Delete statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        String tableName = statement.getTable().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+        //DELETE FROM AA WHERE column1 = 2
+        System.out.println(tableName);
+        System.out.println(statement.getWhere());
+
+        //对比where确定修改行坐标
+        String whereColumnName=null;
+        String whereValue=null;
+        String equalSign=null;
+        String whereStatement = statement.getWhere().toString();
+// 定义正则表达式，匹配可能的运算符以及前后内容，支持无运算符和引号内的值
+        String regex = "(\\w+)\\s*(?:(<=|>=|<>|=|<|>)\\s+)?('([^']*)'|(\\d+))";
+// 创建Pattern对象
+        Pattern pattern = Pattern.compile(regex);
+
+// 创建Matcher对象
+        Matcher matcher = pattern.matcher(whereStatement);
+
+// 尝试匹配
+        if (matcher.find()) { // 使用find()，因为matches()要求整个字符串匹配
+            // 提取并打印结果
+             whereColumnName = matcher.group(1); // 运算符前的部分（列名）
+            equalSign = matcher.group(2); // 运算符（如果有的话）
+            whereValue = matcher.group(3); // 引号内的值（包括引号）或数字（没有引号）
+
+            // 如果找到了引号内的值，则去掉引号
+            whereValue = whereValue.startsWith("'") && whereValue.endsWith("'") ?
+                    whereValue.substring(1, whereValue.length() - 1) :
+                    whereValue;
+
+            // 如果没有找到运算符，则默认使用等号
+            if (equalSign == null || equalSign.isEmpty()) {
+                //TODO:如果where中不包含大于小于等于等常用符号如何进行判断
+                return;
+            }
+
+            // 输出结果
+            System.out.println("Column Name: " + whereColumnName);
+            System.out.println("Operator: " + equalSign);
+            System.out.println("Value: " + whereValue);
+        } else {
+            System.out.println("No match found in the input string.");
+        }
+        //查找where删除对应的列index
+        int rowIndex=-9999;
+        int whereColIndex=-9999;
+        for(int i=0;i<table_columns.size();i++){
+            if(table_columns.get(i).getColumnName().toString().equals(whereColumnName)){
+                whereColIndex=i;
+                break;
+            }
+        }
+        if(whereColIndex<0){
+            Logging.log("where 语句中的列不存在 ");
+            System.out.println("where 语句中的列不存在 ");
+            return;
+        }
+        if(equalSign.equals("=")){
+            //找到对应的行
+            for(int i=0;i<all_values.size();i++){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.equals(whereValue)){
+                    rowIndex=i;
+                    break;
+                }
+            }
+            if(rowIndex<0)
+            {
+                Logging.log("未找到对应删除的行");
+                System.out.println("未找到对应删除的行");
+                return;
+            }
+            //删除该行
+            all_values.remove(rowIndex);
+        }else if (equalSign.equals(">"))
+        //多行删除倒序处理避免行位置自动填补导致的下标变化
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)>0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+            }
+
+        }else if (equalSign.equals(">="))
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)>0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+                if(compareValue.compareTo(whereValue)==0){
+                    all_values.remove(i);
+                }
+            }
+
+        }else if (equalSign.equals("<"))
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)<0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+            }
+
+        }else if (equalSign.equals("<="))
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)<0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+                if(compareValue.compareTo(whereValue)==0){
+                    all_values.remove(i);
+                }
+            }
+
+        }
+
+
+        FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
     }
 
     /**
@@ -80,17 +221,15 @@ public class Processor {
             return;
         }
         List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
-        //UPDATE AA SET column1 = 2 where column2 = 'hello'
-        System.out.println(statement.getTable());
-        //(Update) CCJSqlParserUtil.parse(statement);
-        System.out.println("【更新目标表】：" + statement.getTable());
+//        System.out.println(statement.getTable());
+//        System.out.println("【更新目标表】：" + statement.getTable());
         List<UpdateSet> updateSets = statement.getUpdateSets();
         for (UpdateSet updateSet : updateSets) {
-            System.out.println("【更新字段】：" + updateSet.getColumns());
-            System.out.println("【更新字】：" + updateSet.getValues());
+//            System.out.println("【更新字段】：" + updateSet.getColumns());
+//            System.out.println("【更新字】：" + updateSet.getValues());
         }
-        System.out.println("【更新条件】：" + statement.getWhere());
-        System.out.println("--------------------------------------------------------");
+//        System.out.println("【更新条件】：" + statement.getWhere());
+//        System.out.println("--------------------------------------------------------");
         String changeValue = updateSets.get(0).getValues().toString();
         //找到对应的列
         int changeColumnIndex = -9999;
@@ -143,9 +282,9 @@ public class Processor {
             equalSign = "=";
 
             // 打印结果
-            System.out.println("Column Name: " + whereColumnName);
-            System.out.println("Equal Sign: " + equalSign);
-            System.out.println("Value: " + whereValue);
+//            System.out.println("Column Name: " + whereColumnName);
+//            System.out.println("Equal Sign: " + equalSign);
+//            System.out.println("Value: " + whereValue);
         } else {
             System.out.println("No equal sign found in the string.");
         }
@@ -753,8 +892,6 @@ public class Processor {
 
 
     }
-
-
 
     private static void processInsert(Insert statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
