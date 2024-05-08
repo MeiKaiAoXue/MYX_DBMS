@@ -21,7 +21,7 @@ public class UserManager {
     }
 
     // 添加用户
-    public void addUser(String username, String password, Set<UserMetaData.privilege> privileges) {
+    public void addUser(String username, String password, List<UserMetaData.Privilege> privileges) {
         UserMetaData newUser = new UserMetaData(username, password, privileges);
         users.add(newUser);
         System.out.println("User added: " + newUser.getUserName());
@@ -34,10 +34,10 @@ public class UserManager {
     }
 
     // 添加权限
-    public void grantPrivilege(String username, UserMetaData.privilege privilege) {
+    public void grantPrivilege(String username, UserMetaData.Privilege privilege) {
         UserMetaData user = findUser(username);
         if (user != null) {
-            Set<UserMetaData.privilege> currentPrivileges = user.getPrivileges();
+            List <UserMetaData.Privilege> currentPrivileges = user.getPrivileges();
             if (currentPrivileges.add(privilege)) {
                 System.out.println("Privilege " + privilege + " granted to " + username);
             } else {
@@ -49,10 +49,10 @@ public class UserManager {
     }
 
     // 撤销权限
-    public void revokePrivilege(String username, UserMetaData.privilege privilege) {
+    public void revokePrivilege(String username, UserMetaData.Privilege privilege) {
         UserMetaData user = findUser(username);
         if (user != null) {
-            Set<UserMetaData.privilege> currentPrivileges = user.getPrivileges();
+            List<UserMetaData.Privilege> currentPrivileges = user.getPrivileges();
             if (currentPrivileges.remove(privilege)) {
                 System.out.println("Privilege " + privilege + " revoked from " + username);
             } else {
@@ -72,7 +72,7 @@ public class UserManager {
     }
 
     // 检查用户是否具有特定权限
-    public boolean checkPrivilege(String username, UserMetaData.privilege privilege) {
+    public boolean checkPrivilege(String username, UserMetaData.Privilege privilege) {
         UserMetaData user = findUser(username);
         if (user != null && user.hasPrivilege(privilege)) {
             System.out.println("User " + username + " has the privilege: " + privilege);

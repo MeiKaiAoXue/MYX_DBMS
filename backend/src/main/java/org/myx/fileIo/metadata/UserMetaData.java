@@ -1,21 +1,25 @@
 package org.myx.fileIo.metadata;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
 
-public class UserMetaData {
+public class UserMetaData implements Serializable{
+    public List<Privilege> getPrivileges() {
+        return userPrivileges;
+    }
+
     public enum UserType {
         ADMIN,
         USER
     }
+
     public enum UserStatus {
         ACTIVE,
         INACTIVE
     }
 
-    public enum privilege {
+    public enum Privilege {
         READ("read"),
         INSERT("insert"),
         UPDATE("update"),
@@ -24,14 +28,13 @@ public class UserMetaData {
         DELETE_USER("delete_user"),
         DELETE_DATABASE("delete_database");
 
-
         private final String action;
 
-        privilege(String action){
+        Privilege(String action) {
             this.action = action;
         }
 
-        public String getAction(){
+        public String getAction() {
             return action;
         }
     }
@@ -40,19 +43,16 @@ public class UserMetaData {
     private String password;
     private UserType userType;
     private UserStatus userStatus;
-    private List<privilege> userPrivileges;
-    public static Set<privilege> privileges;
+    private List<Privilege> userPrivileges;
 
-    public UserMetaData(String userName, String password,Set<privilege> privileges) {
+    public UserMetaData(String userName, String password, List<Privilege> userPrivileges) {
         this.userName = userName;
         this.password = password;
-//        this.userType = userType;
-//        this.userStatus = userStatus;
-        this.privileges = privileges;
+        this.userPrivileges = userPrivileges;
     }
+
     public static UserMetaData createAdminUser(String userName, String password) {
-        privileges = new HashSet<>(Arrays.asList(privilege.values()));
-        return new UserMetaData(userName, password, privileges);
+        return new UserMetaData(userName, password, Arrays.asList(Privilege.values()));
     }
 
     public String getUserName() {
@@ -87,28 +87,27 @@ public class UserMetaData {
         this.userStatus = userStatus;
     }
 
-    public List<privilege> getUserPrivileges() {
+    public List<Privilege> getUserPrivileges() {
         return userPrivileges;
     }
-    public Set<privilege> getPrivileges() {
-        return privileges;
+
+    public void setUserPrivileges(List<Privilege> userPrivileges) {
+        this.userPrivileges = userPrivileges;
     }
 
-    public void setUserPrivileges(Set<privilege> privileges) {
-        this.privileges = privileges;
-    }
-
-    public void addPrivilege(privilege userPrivilege) {
+    public void addPrivilege(Privilege userPrivilege) {
         userPrivileges.add(userPrivilege);
     }
 
-    public void removePrivilege(privilege userPrivilege) {
+    public void removePrivilege(Privilege userPrivilege) {
         userPrivileges.remove(userPrivilege);
     }
 
-    public boolean hasPrivilege(privilege userPrivilege) {
-        return privileges.contains(userPrivilege);
+    public boolean hasPrivilege(Privilege userPrivilege) {
+        return userPrivileges.contains(userPrivilege);
     }
+
+    @Override
     public String toString() {
         return "UserMetaData{" +
                 "userName='" + userName + '\'' +
@@ -119,6 +118,7 @@ public class UserMetaData {
                 '}';
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;

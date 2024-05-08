@@ -9,18 +9,29 @@ import net.sf.jsqlparser.statement.alter.Alter;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
+import net.sf.jsqlparser.statement.grant.Grant;
 import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.FromItem;
+import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectItem;
+import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.util.deparser.GrantDeParser;
+import org.jetbrains.annotations.NotNull;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
-import org.myx.fileIo.metadata.ConstraintType;
-import org.myx.fileIo.metadata.ConstraintsMetaData;
-import org.myx.fileIo.metadata.DBMetaData;
-import org.myx.fileIo.metadata.TableMetaData1;
+import org.myx.fileIo.metadata.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class    Processor {
 
@@ -35,14 +46,16 @@ public class    Processor {
             } else if (statement instanceof Alter) {
 //                processAlter((Alter) statement);
             } else if (statement instanceof Select) {
-//                processSelect((Select) statement);
+                processSelect((Select) statement);
             } else if (statement instanceof Insert) {
                 processInsert((Insert) statement);
             } else if (statement instanceof Update) {
 //                processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
 //                processDelete((Delete) statement);
-            } else {
+            } else if (statement instanceof  Grant) {
+//                processGrant((Grant) statement);
+            }else {
                 Logging.log("Error processing SQL: " + sql);
                 throw new IllegalArgumentException("Unsupported SQL statement: " + sql);
             }
@@ -50,6 +63,587 @@ public class    Processor {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 处理select Table语句
+     * @param Select
+     */
+    private  static  void  processSelect(Select statement) throws  IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        PlainSelect plainSelect = statement.getPlainSelect();
+//        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
+//        System.out.println("【查询字段】：" + plainSelect.getSelectItems());
+//        System.out.println("【FROM 表】：" + plainSelect.getFromItem());
+//        System.out.println("【WHERE 子句】：" + plainSelect.getWhere());
+//        System.out.println("【JOIN 子句】：" + plainSelect.getJoins());
+//        System.out.println("【LIMIT 子句】：" + plainSelect.getLimit());
+//        System.out.println("【OFFSET 子句】：" + plainSelect.getOffset());
+//        System.out.println("【ORDER BY 子句】：" + plainSelect.getOrderByElements());
+        //获取查询列名
+        List<String> selectItemStrings = plainSelect.getSelectItems().stream()
+                .map(Object::toString) // 假设SelectItem<?>对象的toString()方法返回所需字符串
+                .collect(Collectors.toList());
+        //获取表名
+        FromItem tableName=plainSelect.getFromItem();
+        if(tableName==null){
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        //获取where条件
+        Expression where=plainSelect.getWhere();
+
+        //获取表中的所有列名
+        TableMetaData1 table = db.getTable(tableName.toString());
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+
+        List<Integer> indexList = new ArrayList<>();//指定输出的列名下标
+        //正则处理where
+        String beforeOperator = null;
+        String operator = "";
+        String afterOperator = null;
+        if(where==null){
+            //*查询
+            if(selectItemStrings.get(0).equals("*")){
+                for (int i=0;i<table_columns.size();i++) {
+                    System.out.print(table_columns.get(i).getColumnName());
+                    System.out.print("  ");
+                }
+                System.out.println();
+                for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                    for (int colIndex=0;colIndex<all_values.get(rowIndex).size();colIndex++){
+                        System.out.print(all_values.get(rowIndex).get(colIndex));
+                        System.out.print("  ");
+                    }
+                    System.out.println();
+                }
+
+            }else{
+                //指定列输出
+                for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                    if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
+                        indexList.add(x);
+                        j++;
+                    }
+                }
+                if(indexList.size()!=selectItemStrings.size()){
+                    //TODO:指明不存在的列名
+                    System.out.println("有查询列不存在于表中");
+                    Logging.log("有查询列不存在于表中");
+                    return;
+                }
+                //输出
+                for (int x=0;x<selectItemStrings.size();x++){
+                    System.out.print(selectItemStrings.get(x));
+                    System.out.print("    ");
+                }
+                System.out.println("");
+                for(int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                    for (int colIndex=0;colIndex<all_values.get(rowIndex).size();colIndex++){
+                        for(int alIndex=0;alIndex<indexList.size();alIndex++){
+                            if(colIndex==indexList.get(alIndex)){
+                                //TODO:控制输出格式，使之对齐
+                                System.out.print(all_values.get(rowIndex).get(colIndex));
+                                System.out.print("    ");
+                            }
+                        }
+                    }
+                    System.out.println("");
+                }
+            }
+        }else {
+            //TODO:完成where后一个的判断 加上AND的多判断未完成
+            String whereString = where.toString();
+            // 定义正则表达式，匹配可能的运算符以及前后内容
+            String regex = "(\\s*)(\\w+)(\\s*)(<=|>=|<>|=|<|>)(\\s*)('[^']*')(\\s*)";
+            // 创建Pattern对象
+            Pattern pattern = Pattern.compile(regex);
+
+            // 创建Matcher对象
+            Matcher matcher = pattern.matcher(whereString);
+
+            // 尝试匹配
+            if (matcher.matches()) {
+                // 提取并打印结果
+                beforeOperator = matcher.group(2); // 运算符前的部分
+                operator = matcher.group(4); // 运算符
+                afterOperator = matcher.group(6).replaceAll("'", ""); // 单引号内的部分，去除单引号
+
+                // 输出结果
+                System.out.println("Before operator: " + beforeOperator);
+                System.out.println("Operator: " + operator);
+                System.out.println("Inside quotes: " + afterOperator);
+            } else {
+                System.out.println("No match found in the input string.");
+            }
+            if(operator.equals("=")){
+                if(selectItemStrings.get(0).equals("*")){
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    //处理where部分
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().toUpperCase().equals(beforeOperator))
+                            break;
+                    }
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        String value = all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.equals(afterOperator))
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                    }
+                    //output
+                    for (int i=0;i<table_columns.size();i++) {
+                        System.out.print(table_columns.get(i).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+                }
+                else{
+                    //指定列输出，处理select后的指定列
+                    for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
+                            indexList.add(x);
+                            j++;
+                        }
+                    }
+                    if(indexList.size()!=selectItemStrings.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("有查询列不存在于表中");
+                        Logging.log("有查询列不存在于表中");
+                        return;
+                    }
+                    //where部分处理
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        String value = all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.equals(afterOperator))
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                    }
+
+                    //output
+                    for (int i=0;i<indexList.size();i++) {
+                        System.out.print(table_columns.get(indexList.get(i)).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<indexList.size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+
+                }
+            } else if (operator.equals(">")) {
+                if(selectItemStrings.get(0).equals("*")){
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        //不同处
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)>0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                    }
+                    //output
+                    for (int i=0;i<table_columns.size();i++) {
+                        System.out.print(table_columns.get(i).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+                }
+                else{
+                    //指定列输出
+                    for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
+                            indexList.add(x);
+                            j++;
+                            index++;
+                        }
+                    }
+                    if(indexList.size()!=selectItemStrings.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("有查询列不存在于表中");
+                        Logging.log("有查询列不存在于表中");
+                        return;
+                    }
+
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)>0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                    }
+
+                    //output
+                    for (int i=0;i<indexList.size();i++) {
+                        System.out.print(table_columns.get(indexList.get(i)).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<indexList.size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+
+                }
+
+            } else if (operator.equals(">=")) {
+                if(selectItemStrings.get(0).equals("*")){
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        //不同处
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)>0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                        else if (compareValue.compareTo(afterOperator)==0) {
+                            outPutRowNum.add(rowIndex);
+                        }
+                    }
+                    //output
+                    for (int i=0;i<table_columns.size();i++) {
+                        System.out.print(table_columns.get(i).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+                }
+                else{
+                    //指定列输出
+                    for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
+                            indexList.add(x);
+                            j++;
+                            index++;
+                        }
+                    }
+                    if(indexList.size()!=selectItemStrings.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("有查询列不存在于表中");
+                        Logging.log("有查询列不存在于表中");
+                        return;
+                    }
+
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)>0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                        else if (compareValue.compareTo(afterOperator)==0) {
+                            outPutRowNum.add(rowIndex);
+                        }
+                    }
+
+                    //output
+                    for (int i=0;i<indexList.size();i++) {
+                        System.out.print(table_columns.get(indexList.get(i)).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<indexList.size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+
+                }
+            } else if (operator.equals("<")) {
+                if(selectItemStrings.get(0).equals("*")){
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        //不同处
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)<0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                    }
+                    //output
+                    for (int i=0;i<table_columns.size();i++) {
+                        System.out.print(table_columns.get(i).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+                }
+                else{
+                    //指定列输出
+                    for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
+                            indexList.add(x);
+                            j++;
+                            index++;
+                        }
+                    }
+                    if(indexList.size()!=selectItemStrings.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("有查询列不存在于表中");
+                        Logging.log("有查询列不存在于表中");
+                        return;
+                    }
+
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)<0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                    }
+
+                    //output
+                    for (int i=0;i<indexList.size();i++) {
+                        System.out.print(table_columns.get(indexList.get(i)).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<indexList.size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+
+                }
+
+            } else if (operator.equals("<=")) {
+                if(selectItemStrings.get(0).equals("*")){
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        //不同处
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)<0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                        else if (compareValue.compareTo(afterOperator)==0) {
+                            outPutRowNum.add(rowIndex);
+                        }
+                    }
+                    //output
+                    for (int i=0;i<table_columns.size();i++) {
+                        System.out.print(table_columns.get(i).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+                }
+                else{
+                    //指定列输出
+                    for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
+                            indexList.add(x);
+                            j++;
+                            index++;
+                        }
+                    }
+                    if(indexList.size()!=selectItemStrings.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("有查询列不存在于表中");
+                        Logging.log("有查询列不存在于表中");
+                        return;
+                    }
+
+                    List<Integer> outPutRowNum = new ArrayList<>();
+                    int targetColIndex;
+                    for(targetColIndex=0;targetColIndex<table_columns.size();targetColIndex++){
+                        if(table_columns.get(targetColIndex).getColumnName().equals(beforeOperator))
+                            break;
+                    }
+
+                    if(targetColIndex==table_columns.size()){
+                        //TODO:指明不存在的列名
+                        System.out.println("where后有查询列不存在于表中");
+                        Logging.log("where后有查询列不存在于表中");
+                        return;
+                    }
+
+                    for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
+                        String value=all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
+                        String compareValue=value.replace("'", "");
+                        if(compareValue.compareTo(afterOperator)<0)
+                            outPutRowNum.add(rowIndex);//符合条件的行数
+                        else if (compareValue.compareTo(afterOperator)==0) {
+                            outPutRowNum.add(rowIndex);
+                        }
+                    }
+
+                    //output
+                    for (int i=0;i<indexList.size();i++) {
+                        System.out.print(table_columns.get(indexList.get(i)).getColumnName());
+                        System.out.print("  ");
+                    }
+                    System.out.print("\n");
+                    for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
+                        for (int colIndex=0;colIndex<indexList.size();colIndex++){
+                            System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
+                            System.out.print("  ");
+                        }
+                        System.out.print("\n");
+                    }
+
+                }
+            }
+        }
+
+
+    }
+
+
 
     private static void processInsert(Insert statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
@@ -491,3 +1085,4 @@ public class    Processor {
 //        else return "";
 //    }
 }
+

@@ -7,10 +7,7 @@ import org.myx.fileIo.metadata.UserMetaData;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-
-import static org.myx.fileIo.metadata.UserMetaData.privileges;
 
 // 编写一个以对象类型读取与写入文件的工具类
 public class FileUtils {
@@ -52,12 +49,13 @@ public class FileUtils {
         }
     }
 
-    public static void initAdminUser(String adminFilePath,String username, String password) {
-        privileges = new HashSet<>(Arrays.asList(UserMetaData.privilege.values())); // 管理员拥有所有权限
+    public static void initAdminUser(String adminFilePath, String username, String password) {
+        List<UserMetaData.Privilege> privileges = Arrays.asList(UserMetaData.Privilege.values());
         UserMetaData admin = new UserMetaData(username, password, privileges);
-        writeObjectToFile(admin, adminFilePath);  // 将管理员用户信息写入文件
+        writeObjectToFile(admin, adminFilePath); // 将管理员用户信息写入文件
         System.out.println("Admin initialized");
     }
+
     // 添加用户
     public static void addUser(String filePath, UserMetaData user) {
         try {
