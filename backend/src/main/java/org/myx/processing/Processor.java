@@ -46,7 +46,7 @@ public class Processor {
             } else if (statement instanceof Drop) {
 //                processDrop((Drop) statement);
             } else if (statement instanceof Alter) {
-//                processAlter((Alter) statement);
+                processAlter((Alter) statement);
             } else if (statement instanceof Select) {
                 processSelect((Select) statement);
             } else if (statement instanceof Insert) {
@@ -63,6 +63,11 @@ public class Processor {
             e.printStackTrace();
         }
     }
+
+    private static void processAlter(Alter statement) {
+
+    }
+
     /**
      * 处理DELETE Table语句
      *
