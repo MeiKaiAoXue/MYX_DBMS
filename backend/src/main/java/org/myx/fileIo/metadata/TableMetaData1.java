@@ -37,6 +37,10 @@ public class TableMetaData1 implements Serializable {
         this.columns.add(column);
     }
 
+    public void dropColumn(List<ColumnMetaData>change){
+        this.columns=change;
+    }
+
     public void addConstraint(String constraintName, String constraintType, String constraintCondition) {
         ConstraintsMetaData constraint = new ConstraintsMetaData();
         constraint.constraintName = constraintName;
