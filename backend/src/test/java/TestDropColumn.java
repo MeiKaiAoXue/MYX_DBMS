@@ -26,8 +26,11 @@ public class TestDropColumn {
         Processor.process(insert_sql4);
         Processor.process(insert_sql5);
         Processor.process(insert_sql6);
-        String drop_sql1= "ALTER TABLE AA DROP COLUMN COLUMN1";
+        String drop_sql1= "ALTER TABLE AA DROP COLUMN COLUMN1";//无数据版本测试成功//有数据版本测试成功
+        //String drop_sql2= "ALTER TABLE AA DROP COLUMN (COLUMN1,COLUMN2)";//sql无法解析
+        //String drop_sql1= "ALTER TABLE AA DROP COLUMN COLUMN2";
         Processor.process(drop_sql1);
+       // Processor.process(drop_sql2);
         String select_sql="select * from AA";
         Processor.process(select_sql);
     }

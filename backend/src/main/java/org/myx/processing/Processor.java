@@ -6,6 +6,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.alter.Alter;
+import net.sf.jsqlparser.statement.alter.AlterExpression;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
@@ -63,9 +64,57 @@ public class Processor {
             e.printStackTrace();
         }
     }
+    /**
+     * 处理 Alter Table语句
+     *
+     * @param Alter
+     */
+    private static void processAlter(Alter statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        String tableName = statement.getTable().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        List<TableMetaData1> tables=db.getTables();
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+        //"ALTER TABLE AA DROP COLUMN COLUMN1"
+        System.out.println(tableName);
+        //drop单列
+        //判断是否有元组记录，没有直接删除db中的列，有则先删除数据再删除列-->不用考虑，无论如何都要删db.txt，不影响修改xx.txt
+        String dropColName = statement.getAlterExpressions().get(0).getColumnName();
+        System.out.println("[删除列的列名是]"+dropColName);
+        int dropColindex=-9999;
+        for (int i=0;i<table_columns.size();i++){
+            if(table_columns.get(i).getColumnName().equals(dropColName)){
+                dropColindex=i;
+                break;
+            }
+        }
+        if(dropColindex<0){
+            Logging.log("alter drop中的对应列不存在");
+            System.out.println("alter drop中的对应列不存在");
+            return;
+        }
+//
 
-    private static void processAlter(Alter statement) {
+            //不存在元组时
+            table_columns.remove(dropColindex);
+            //删除table实例中的column
+            table.dropColumn(table_columns);
+            //修改db.txt
+            FileUtils.writeObjectToFile(db, "./db.txt");
 
+        if(all_values.size()>0){
+            for(int i=all_values.size()-1;i>=0;i--){
+                //只要有结果，无论object存储结果是否为空删除该位置
+                all_values.get(i).remove(dropColindex);
+            }
+            FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+        }
     }
 
     /**
