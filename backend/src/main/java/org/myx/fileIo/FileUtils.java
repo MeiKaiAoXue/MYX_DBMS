@@ -11,6 +11,33 @@ import java.util.List;
 
 // 编写一个以对象类型读取与写入文件的工具类
 public class FileUtils {
+
+    private static final String DB_LIST = "./db_list.txt";
+    //将数据库名称写入文件
+    public static void saveDBName(String dbName) throws IOException {
+        try (FileWriter fw = new FileWriter(DB_LIST, true);
+        BufferedWriter bw = new BufferedWriter(fw)){
+            bw.write(dbName + "\n");
+        } catch (IOException e){
+            System.out.println("写入数据库列表文件失败："+ e.getMessage());
+        }
+    }
+
+    //从文件中读取数据库名称列表
+    public static List<String> loadDBNames() {
+        List<String> dbNames = new ArrayList<>();
+        try (FileReader fr = new FileReader(DB_LIST);
+             BufferedReader br = new BufferedReader(fr)) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                dbNames.add(line);
+            }
+        } catch (IOException e) {
+            System.out.println("无法读取数据库列表文件：" + e.getMessage());
+        }
+        return dbNames;
+    }
+
     // 以对象形式写入文件
     public static void writeObjectToFile(Object obj, String filePath) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
@@ -40,12 +67,12 @@ public class FileUtils {
         writeObjectToFile(db, filePath);
     }
 
-    public static void deleteDB(String filePath){
-        File file = new File(filePath);
-        if (file.delete()){
-            System.out.println("Delete database");
-        }else{
-            System.out.println("Failed to delete the database");
+    public static void deleteDB(String dbName){
+        File file = new File("./" + dbName + ".txt");
+        if (file.delete()) {
+            System.out.println("数据库文件已删除：" + dbName);
+        } else {
+            System.out.println("无法删除数据库文件：" + dbName);
         }
     }
 

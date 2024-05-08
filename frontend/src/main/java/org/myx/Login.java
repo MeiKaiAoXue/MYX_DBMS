@@ -1,12 +1,13 @@
 package org.myx;
 
 import javax.swing.*;
+import java.awt.event.KeyAdapter;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class Login {
 
-    private JFrame frame;
+    public JFrame frame;
     private JButton createDB;
     private JButton selectDBButton;
     private JButton deleteDBButton;
@@ -25,6 +26,21 @@ public class Login {
                 createDB1.frame.pack();
                 createDB1.frame.setLocationRelativeTo(null); // 窗口居中
                 createDB1.frame.setVisible(true); // 显示窗口
+            }
+        });
+        deleteDBButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                System.out.println("点击了deleteDB");
+                //创建删除数据库对象
+                deleteDB deleteDB = new deleteDB();
+                deleteDB.frame = new JFrame("删除数据库");
+                deleteDB.frame.setContentPane(deleteDB.deletePanel);
+                deleteDB.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                deleteDB.frame.pack();
+                deleteDB.frame.setLocationRelativeTo(null); // 窗口居中
+                deleteDB.frame.setVisible(true); // 显示窗口
+
             }
         });
     }

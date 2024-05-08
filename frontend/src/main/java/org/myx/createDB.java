@@ -1,10 +1,13 @@
 package org.myx;
 
+import org.myx.fileIo.FileUtils;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 
 import static java.lang.System.exit;
 import static org.myx.fileIo.FileUtils.initDB;
@@ -25,7 +28,21 @@ public class createDB implements ActionListener{
                 if(e.getSource() == Create){
                     String dbName = DBname.getText();
                     String filePath = "./" + dbName + ".txt";
-                    initDB(filePath);
+                    try {
+                        initDB(filePath); // 假设 Main 类有一个静态方法来接收数据库路径
+                        FileUtils.saveDBName(dbName);
+
+                        // 显示创建成功的消息
+                        JOptionPane.showMessageDialog(frame, "数据库创建成功！", "成功", JOptionPane.INFORMATION_MESSAGE);
+
+                        // 关闭当前窗口
+                        frame.dispose();
+
+
+                    } catch (Exception err) {
+                        // 错误处理：显示错误消息
+                        JOptionPane.showMessageDialog(frame, "数据库创建失败：" + err.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
         });

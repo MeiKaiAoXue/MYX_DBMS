@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.myx.deleteDB">
+  <grid id="27dc6" binding="deletePanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="70ecd" class="javax.swing.JLabel">
+        <constraints border-constraint="North"/>
+        <properties>
+          <font size="26" style="1"/>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
+          <text value="删除数据库"/>
+        </properties>
+      </component>
+      <component id="f83ce" class="javax.swing.JLabel">
+        <constraints border-constraint="West"/>
+        <properties>
+          <text value="数据库列表"/>
+        </properties>
+      </component>
+      <component id="e02e3" class="javax.swing.JButton" binding="deleteButton">
+        <constraints border-constraint="South"/>
+        <properties>
+          <text value="删除"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>
