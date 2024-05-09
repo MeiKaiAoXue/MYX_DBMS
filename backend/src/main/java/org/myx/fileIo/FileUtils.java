@@ -75,27 +75,45 @@ public class FileUtils {
             System.out.println("无法删除数据库文件：" + dbName);
         }
     }
+    public static void updateDBList(String dbName) {
+        List<String> dbNames = loadDBNames(); // 读取现有的数据库名称列表
+        dbNames.removeIf(name -> name.equals(dbName)); // 移除指定的数据库名称
+        // 重写db_list.txt文件
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("./db_list.txt", false))) {
+            for (String name : dbNames) {
+                bw.write(name + "\n");
+            }
+        } catch (IOException e) {
+            System.out.println("更新数据库列表文件失败：" + e.getMessage());
+        }
+    }
 
     public static void initAdminUser(String adminFilePath, String username, String password) {
-        List<UserMetaData.Privilege> privileges = Arrays.asList(UserMetaData.Privilege.values());
-        UserMetaData admin = new UserMetaData(username, password, privileges);
-        writeObjectToFile(admin, adminFilePath); // 将管理员用户信息写入文件
+        UserMetaData admin = new UserMetaData(username, password);
+        List<UserMetaData> users = new ArrayList<>();
+        users.add(admin);
+        writeObjectToFile(users, adminFilePath); // 将管理员用户列表写入文件
         System.out.println("Admin initialized");
     }
 
     // 添加用户
     public static void addUser(String filePath, UserMetaData user) {
+        List<UserMetaData> users;
         try {
-            List<UserMetaData> users = (List<UserMetaData>) readObjectFromFile(filePath);
-            users.add(user);
-            writeObjectToFile(users, filePath);
-        } catch (RuntimeException e) {
-            List<UserMetaData> users = new ArrayList<>();
-            users.add(user);
-            writeObjectToFile(users, filePath);
+            users = (List<UserMetaData>) readObjectFromFile(filePath);
+        } catch (ClassCastException e) {
+            System.out.println("文件格式不正确，ClassCastException: " + e.getMessage());
+            return; // 或者决定是否需要创建新文件
         }
+
+        if (users == null) {
+            users = new ArrayList<>(); // 只在确实需要时创建新列表
+        }
+        users.add(user);
+        writeObjectToFile(users, filePath);
         System.out.println("User added: " + user.getUserName());
     }
+
 
     // 删除用户
     public static void deleteUser(String filePath, String username) {

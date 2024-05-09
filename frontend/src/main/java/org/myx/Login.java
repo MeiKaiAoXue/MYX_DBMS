@@ -11,7 +11,7 @@ public class Login {
     private JButton createDB;
     private JButton selectDBButton;
     private JButton deleteDBButton;
-    private JPanel loginPanel;
+    public JPanel loginPanel;
 
     public Login() {
         createDB.addMouseListener(new MouseAdapter() {

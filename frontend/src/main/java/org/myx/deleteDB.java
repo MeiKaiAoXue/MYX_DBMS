@@ -5,7 +5,6 @@ import org.myx.fileIo.FileUtils;
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.List;
 
 public class deleteDB {
@@ -13,6 +12,7 @@ public class deleteDB {
     public JFrame frame;
     public JPanel deletePanel;
     private JButton deleteButton;
+    private JPanel list;
     private ButtonGroup group;
 
     public deleteDB(){
@@ -22,7 +22,8 @@ public class deleteDB {
             JRadioButton radioButton = new JRadioButton(dbName);
             radioButton.setActionCommand(dbName);
             group.add(radioButton);
-            deletePanel.add(radioButton);
+            list.add(radioButton);
+            list.add(Box.createVerticalStrut(10));
         }
 
         deleteButton.addMouseListener(new MouseAdapter() {
@@ -30,9 +31,11 @@ public class deleteDB {
             public void mouseClicked(MouseEvent e) {
                 String selectedDB = group.getSelection().getActionCommand();
                 FileUtils.deleteDB(selectedDB);
+                FileUtils.updateDBList(selectedDB);
                 JOptionPane.showMessageDialog(frame, "数据库删除成功", "删除成功", JOptionPane.INFORMATION_MESSAGE);
                 frame.dispose();
             }
         });
+
     }
 }

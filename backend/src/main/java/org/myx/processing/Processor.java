@@ -1058,7 +1058,7 @@ public class    Processor {
 
         });
         db.addTable(newTableMetaData);
-        FileUtils.writeObjectToFile(db, "./db.txt");
+        FileUtils.writeObjectToFile(db, currentDBName);
 
         Table table = new Table(tableName, newTableMetaData.getColumns());
         // 表文件中只存表对象中的values，不存表名和字段

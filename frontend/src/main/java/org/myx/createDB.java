@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 
 import static java.lang.System.exit;
+import static org.myx.fileIo.FileUtils.initAdminUser;
 import static org.myx.fileIo.FileUtils.initDB;
 
 public class createDB implements ActionListener{
@@ -29,7 +30,8 @@ public class createDB implements ActionListener{
                     String dbName = DBname.getText();
                     String filePath = "./" + dbName + ".txt";
                     try {
-                        initDB(filePath); // 假设 Main 类有一个静态方法来接收数据库路径
+                        initDB(filePath);
+                        initAdminUser("./users.txt","admin","123456");
                         FileUtils.saveDBName(dbName);
 
                         // 显示创建成功的消息

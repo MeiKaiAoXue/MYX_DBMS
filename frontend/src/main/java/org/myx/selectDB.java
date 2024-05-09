@@ -30,18 +30,18 @@ public class selectDB {
                 String selectedDB = group.getSelection().getActionCommand();
                 System.out.println("选中了数据库:" + selectedDB);
                 Processor.setCurrentDBName(selectedDB);
-                openForm();
+                openLogin();
                 frame.dispose();
             }
         });
     }
-    private void openForm() {
-        Form form = new Form();
-        form.frame = new JFrame("Form");
-        form.frame.setContentPane(form.formPanel);
-        form.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        form.frame.pack();
-        form.frame.setLocationRelativeTo(null);
-        form.frame.setVisible(true);
+    private void openLogin() {
+        userLogin userLogin = new userLogin();
+        userLogin.frame = new JFrame("userLogin");
+        userLogin.frame.setContentPane(userLogin.userLoginPanel);
+        userLogin.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        userLogin.frame.pack();
+        userLogin.frame.setLocationRelativeTo(null);
+        userLogin.frame.setVisible(true);
     }
 }

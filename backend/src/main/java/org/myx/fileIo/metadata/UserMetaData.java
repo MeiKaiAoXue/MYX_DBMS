@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class UserMetaData implements Serializable{
+    private static final long serialVersionUID = 6746102291468956672L;
     public List<Privilege> getPrivileges() {
         return userPrivileges;
     }
@@ -45,14 +46,13 @@ public class UserMetaData implements Serializable{
     private UserStatus userStatus;
     private List<Privilege> userPrivileges;
 
-    public UserMetaData(String userName, String password, List<Privilege> userPrivileges) {
+    public UserMetaData(String userName, String password) {
         this.userName = userName;
         this.password = password;
-        this.userPrivileges = userPrivileges;
     }
 
     public static UserMetaData createAdminUser(String userName, String password) {
-        return new UserMetaData(userName, password, Arrays.asList(Privilege.values()));
+        return new UserMetaData(userName, password);
     }
 
     public String getUserName() {

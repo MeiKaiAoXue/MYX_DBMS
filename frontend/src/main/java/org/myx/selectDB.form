@@ -24,7 +24,7 @@
         <properties>
           <font size="18"/>
           <horizontalAlignment value="0"/>
-          <preferredSize width="100" height="100"/>
+          <preferredSize width="100" height="400"/>
           <requestFocusEnabled value="true"/>
           <text value="数据库列表"/>
         </properties>

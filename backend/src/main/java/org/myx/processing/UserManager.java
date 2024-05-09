@@ -21,8 +21,8 @@ public class UserManager {
     }
 
     // 添加用户
-    public void addUser(String username, String password, List<UserMetaData.Privilege> privileges) {
-        UserMetaData newUser = new UserMetaData(username, password, privileges);
+    public void addUser(String username, String password) {
+        UserMetaData newUser = new UserMetaData(username, password);
         users.add(newUser);
         System.out.println("User added: " + newUser.getUserName());
     }
