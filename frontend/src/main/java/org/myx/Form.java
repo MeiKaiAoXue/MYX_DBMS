@@ -3,8 +3,10 @@ package org.myx;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 public class Form {
-    private JPanel mainWindow;
+    public JFrame frame;
+    public JPanel formPanel;
     private JLabel title;
     private JTextArea SQLTextArea;
     private JTextArea resultTextArea;
@@ -14,20 +16,7 @@ public class Form {
     private JTextArea resultArea;
     private JButton commit;
 
-    public Form(JFrame frame){
-        //JTextArea自动换行
-        SQLTextArea.setLineWrap(true);
-        SQLTextArea.setWrapStyleWord(true);
-        //执行
-        exeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
+    public Form(){
     }
 
-    private void createUIComponents() {
-        // TODO: place custom component creation code here
-    }
 }

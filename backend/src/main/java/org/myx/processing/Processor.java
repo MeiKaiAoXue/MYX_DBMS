@@ -34,6 +34,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class    Processor {
+    private static String currentDBName;
+    public static void setCurrentDBName(String dbName){
+        currentDBName = "./" + dbName + ".txt";
+    }
 
     public static void process(String sql){
         try {
@@ -69,7 +73,7 @@ public class    Processor {
      * @param Select
      */
     private  static  void  processSelect(Select statement) throws  IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
         PlainSelect plainSelect = statement.getPlainSelect();
 //        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
 //        System.out.println("【查询字段】：" + plainSelect.getSelectItems());
@@ -646,7 +650,7 @@ public class    Processor {
 
 
     private static void processInsert(Insert statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
 
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
@@ -992,7 +996,7 @@ public class    Processor {
      * @param createTable
      */
     private static void processCreate(CreateTable createTable) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
 
         String tableName = createTable.getTable().getName();
         TableMetaData1 checkTable = db.getTable(tableName);

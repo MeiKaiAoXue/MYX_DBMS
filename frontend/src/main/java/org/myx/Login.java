@@ -43,6 +43,20 @@ public class Login {
 
             }
         });
+        selectDBButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                System.out.println("点击了selectDB");
+                //创建选择数据库对象
+                selectDB selectDB = new selectDB();
+                selectDB.frame = new JFrame("选择数据库");
+                selectDB.frame.setContentPane(selectDB.selectPanel);
+                selectDB.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                selectDB.frame.pack();
+                selectDB.frame.setLocationRelativeTo(null);
+                selectDB.frame.setVisible(true);
+            }
+        });
     }
 
     public static void main(String[] args) {
