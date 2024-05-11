@@ -83,22 +83,30 @@ public class Processor {
         List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
         //"ALTER TABLE AA DROP COLUMN COLUMN1"
         System.out.println(tableName);
-        //drop单列
-        //判断是否有元组记录，没有直接删除db中的列，有则先删除数据再删除列-->不用考虑，无论如何都要删db.txt，不影响修改xx.txt
-        String dropColName = statement.getAlterExpressions().get(0).getColumnName();
-        System.out.println("[删除列的列名是]"+dropColName);
-        int dropColindex=-9999;
-        for (int i=0;i<table_columns.size();i++){
-            if(table_columns.get(i).getColumnName().equals(dropColName)){
-                dropColindex=i;
-                break;
+        System.out.println(statement.getAlterExpressions().toString());
+        String alterStatment=statement.getAlterExpressions().toString();
+        // 去除开头可能的空白字符
+        alterStatment = alterStatment.trim();
+        //判断语句是drop还是add或是修改
+        if (alterStatment.startsWith("[DROP")) {
+            // 语句以DROP开头
+            //System.out.println("The statement starts with DROP");
+            //drop单列
+            //判断是否有元组记录，没有直接删除db中的列，有则先删除数据再删除列-->不用考虑，无论如何都要删db.txt，不影响修改xx.txt
+            String dropColName = statement.getAlterExpressions().get(0).getColumnName();
+            System.out.println("[删除列的列名是]"+dropColName);
+            int dropColindex=-9999;
+            for (int i=0;i<table_columns.size();i++){
+                if(table_columns.get(i).getColumnName().equals(dropColName)){
+                    dropColindex=i;
+                    break;
+                }
             }
-        }
-        if(dropColindex<0){
-            Logging.log("alter drop中的对应列不存在");
-            System.out.println("alter drop中的对应列不存在");
-            return;
-        }
+            if(dropColindex<0){
+                Logging.log("alter drop中的对应列不存在");
+                System.out.println("alter drop中的对应列不存在");
+                return;
+            }
 //
 
             //不存在元组时
@@ -108,13 +116,104 @@ public class Processor {
             //修改db.txt
             FileUtils.writeObjectToFile(db, "./db.txt");
 
-        if(all_values.size()>0){
-            for(int i=all_values.size()-1;i>=0;i--){
-                //只要有结果，无论object存储结果是否为空删除该位置
-                all_values.get(i).remove(dropColindex);
+            if(all_values.size()>0){
+                for(int i=all_values.size()-1;i>=0;i--){
+                    //只要有结果，无论object存储结果是否为空删除该位置
+                    all_values.get(i).remove(dropColindex);
+                }
+                FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
             }
-            FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+
+        } else if (alterStatment.startsWith("[ADD")) {
+            // 语句以ADD开头
+            System.out.println("The statement starts with ADD");
+            //对add单列进行操作,转换成createtable中的语句
+            // 移除方括号
+            String trimmedSqlFragment = alterStatment.replaceAll("\\[|\\]", "");
+
+            // 使用正则表达式按照空格拆分字符串
+            String[] parts = trimmedSqlFragment.split("\\s+");
+
+            // 检查拆分后的部分数量是否足够
+            if (parts.length < 4) {
+                System.out.println("Invalid SQL fragment format: " + alterStatment);
+                return;
+            }
+
+            // 提取列名和数据类型
+            String columnName = parts[2]; // 假设列名总是第三部分
+            String dataType = parts[3]; // 数据类型总是第四部分
+
+            // 提取约束（如果有的话）
+            StringBuilder constraintsBuilder = new StringBuilder();
+            for (int i = 4; i < parts.length; i++) {
+                if (constraintsBuilder.length() > 0) {
+                    constraintsBuilder.append(" ");
+                }
+                constraintsBuilder.append(parts[i]);
+            }
+            String constraints = constraintsBuilder.toString();
+
+            // 输出结果
+            System.out.println("Column Name: " + columnName);
+            System.out.println("Data Type: " + dataType);
+            System.out.println("Constraints: " + constraints);
+            System.out.println(); // 打印空行以分隔不同SQL片 段的输出
+
+            TableMetaData1 newTableMetaData = new TableMetaData1(tableName);
+            // 给表元数据添加列元数据
+//            if (dataType.equals("VARCHAR"))
+//            {
+//                int index = columnDefinition.getColDataType().getArgumentsStringList().indexOf("VARCHAR");
+//                String columnType = dataType + "(" + columnDefinition.getColDataType().getArgumentsStringList().get(index + 1) + ")";
+//                newTableMetaData.addColumn(columnDefinition.getColumnName(), columnType);
+//            }
+//            else {
+//                newTableMetaData.addColumn(columnDefinition.getColumnName(), columnDefinition.getColDataType().getDataType());
+//            }
+
+            // 处理列约束
+//            for (ConstraintType constraint : ConstraintType.values()) {
+//                String constraintName = constraint.name().replace("_", " ");
+//                // 先判断有没有这个约束
+//                if (columnDefinition.toString().contains(constraintName)) {
+//                    // 再判断是哪个约束
+//                    switch (constraint) {
+//                        case PRIMARY_KEY:
+//                            newTableMetaData.addConstraint("PK_" + columnDefinition.getColumnName(), "PRIMARY KEY", null);
+//                            break;
+//                        case NOT_NULL:
+//                            newTableMetaData.addConstraint("NN_" + columnDefinition.getColumnName(), "NOT NULL", null);
+//                            break;
+//                        case UNIQUE:
+//                            newTableMetaData.addConstraint("UK_" + columnDefinition.getColumnName(), "UNIQUE", null);
+//                            break;
+//                        case CHECK:
+//                            int checkIndex = columnDefinition.getColumnSpecs().indexOf("CHECK");
+//                            String checkCondition = columnDefinition.getColumnSpecs().get(checkIndex + 1);
+//                            newTableMetaData.addConstraint("CK_" + columnDefinition.getColumnName(), "CHECK", checkCondition);
+//                            break;
+//                        case DEFAULT:
+//                            int defaultIndex = columnDefinition.getColumnSpecs().indexOf("DEFAULT");
+//                            String defaultCondition = columnDefinition.getColumnSpecs().get(defaultIndex + 1);
+//                            newTableMetaData.addConstraint("DF_" + columnDefinition.getColumnName(), "DEFAULT", defaultCondition);
+//                            break;
+//                        case REFERENCES:
+//                            int fkIndex = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
+//                            String referenceCondition = columnDefinition.getColumnSpecs().get(fkIndex + 1) + columnDefinition.getColumnSpecs().get(fkIndex + 2);
+//                            newTableMetaData.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY", referenceCondition);
+//                            break;
+//                    }
+//                }
+//            }
+
+
+
+        } else {
+            // 其他情况
+            System.out.println("The statement does not start with DROP or ADD");
         }
+
     }
 
     /**
