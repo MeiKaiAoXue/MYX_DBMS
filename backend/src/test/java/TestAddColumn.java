@@ -25,10 +25,12 @@ public class TestAddColumn { public static void main(String[] args) {
     Processor.process(insert_sql4);
     Processor.process(insert_sql5);
     Processor.process(insert_sql6);
-    //String add_sql1= "ALTER TABLE AA ADD COLUMN COLUMN3  NUMBER NOT NULL;";
-    String add_sql1= "ALTER TABLE AA ADD COLUMN COLUMN3  VARCHAR(20) NOT NULL UNIQUE;";
-    //String add_sql1= "ALTER TABLE AA ADD COLUMN COLUMN3  NUMBER ;";
-    Processor.process((add_sql1));
+    //String add_sql1= "ALTER TABLE AA ADD COLUMN COLUMN3  NUMBER;";
+    //String add_sql1= "ALTER TABLE AA ADD COLUMN COLUMN3 VARCHAR(20) NOT NULL UNIQUE;";//成功
+    //String add_sql1= "ALTER TABLE AA ADD COLUMN COLUMN4 INT(500000) CHECK (COLUMN4>2);";
+    String add_sql1= "ALTER TABLE AA ADD COLUMN COLUMN4 INT(500000) DEFAULT 100;";
+
+    Processor.process(add_sql1);
     String select_sql="select * from AA";
     Processor.process(select_sql);
 }

@@ -85,6 +85,10 @@ public class Processor {
         System.out.println(tableName);
         System.out.println(statement.getAlterExpressions().toString());
         String alterStatment=statement.getAlterExpressions().toString();
+        String columnName=null;
+        String dataTypeWithConstraints=null;
+        String constraints=null;
+        String dataType=null;
         // 去除开头可能的空白字符
         alterStatment = alterStatment.trim();
         //判断语句是drop还是add或是修改
@@ -130,85 +134,85 @@ public class Processor {
             //对add单列进行操作,转换成createtable中的语句
             // 移除方括号
             String trimmedSqlFragment = alterStatment.replaceAll("\\[|\\]", "");
-
-            // 使用正则表达式按照空格拆分字符串
-            String[] parts = trimmedSqlFragment.split("\\s+");
-
-            // 检查拆分后的部分数量是否足够
-            if (parts.length < 4) {
-                System.out.println("Invalid SQL fragment format: " + alterStatment);
-                return;
+            columnName = extractColumnName(trimmedSqlFragment);
+            String fieldType = extractFieldType(trimmedSqlFragment);
+            constraints = extractFieldConstraints(trimmedSqlFragment);
+            System.out.println("[新添加的列名]:" + columnName);
+            System.out.println("[字段类型]:" + fieldType);
+            System.out.println("[字段约束]:" + (constraints == null ? "null" : constraints));
+            String regex2 = "^(.*?)\\(";
+            Pattern pattern = Pattern.compile(regex2);
+            Matcher matcher = pattern.matcher(fieldType);
+            if (matcher.find()) {
+                dataType = matcher.group(1).replace(" ","");
+                System.out.println("单独提取字段类型测试：[datatype]--"+dataType); // 输出：someTextHere
+            }else{
+                dataType=fieldType;
+                System.out.println("字段类型未设置长度约束");
             }
-
-            // 提取列名和数据类型
-            String columnName = parts[2]; // 假设列名总是第三部分
-            String dataType = parts[3]; // 数据类型总是第四部分
-
-            // 提取约束（如果有的话）
-            StringBuilder constraintsBuilder = new StringBuilder();
-            for (int i = 4; i < parts.length; i++) {
-                if (constraintsBuilder.length() > 0) {
-                    constraintsBuilder.append(" ");
-                }
-                constraintsBuilder.append(parts[i]);
-            }
-            String constraints = constraintsBuilder.toString();
-
-            // 输出结果
-            System.out.println("Column Name: " + columnName);
-            System.out.println("Data Type: " + dataType);
-            System.out.println("Constraints: " + constraints);
-            System.out.println(); // 打印空行以分隔不同SQL片 段的输出
-
-            TableMetaData1 newTableMetaData = new TableMetaData1(tableName);
             // 给表元数据添加列元数据
-//            if (dataType.equals("VARCHAR"))
-//            {
-//                int index = columnDefinition.getColDataType().getArgumentsStringList().indexOf("VARCHAR");
-//                String columnType = dataType + "(" + columnDefinition.getColDataType().getArgumentsStringList().get(index + 1) + ")";
-//                newTableMetaData.addColumn(columnDefinition.getColumnName(), columnType);
-//            }
-//            else {
-//                newTableMetaData.addColumn(columnDefinition.getColumnName(), columnDefinition.getColDataType().getDataType());
-//            }
+            if (dataType.equals("VARCHAR"))
+            {
+                table.addColumn(columnName, dataType);
+            }
+            else {
+                table.addColumn(columnName, dataType);
+            }
+            //约束格式化为ConstraintType中枚举类型
+            String replacedConstraintsString = constraints
+                    .replace("PRIMARY KEY", "PRIMARY_KEY")
+                    .replace("NOT NULL", "NOT_NULL");
 
+            //System.out.println(replacedConstraintsString);//成功
+            //约束
+            String[] constraintsArray = replacedConstraintsString.trim().split("\\s+"); // 使用空白字符进行分割
+
+            // 输出分割后的约束数组 --成功
+//            for (String constraint : constraintsArray) {
+//                System.out.println(constraint);
+//            }
             // 处理列约束
-//            for (ConstraintType constraint : ConstraintType.values()) {
-//                String constraintName = constraint.name().replace("_", " ");
-//                // 先判断有没有这个约束
-//                if (columnDefinition.toString().contains(constraintName)) {
-//                    // 再判断是哪个约束
-//                    switch (constraint) {
-//                        case PRIMARY_KEY:
-//                            newTableMetaData.addConstraint("PK_" + columnDefinition.getColumnName(), "PRIMARY KEY", null);
-//                            break;
-//                        case NOT_NULL:
-//                            newTableMetaData.addConstraint("NN_" + columnDefinition.getColumnName(), "NOT NULL", null);
-//                            break;
-//                        case UNIQUE:
-//                            newTableMetaData.addConstraint("UK_" + columnDefinition.getColumnName(), "UNIQUE", null);
-//                            break;
-//                        case CHECK:
-//                            int checkIndex = columnDefinition.getColumnSpecs().indexOf("CHECK");
-//                            String checkCondition = columnDefinition.getColumnSpecs().get(checkIndex + 1);
-//                            newTableMetaData.addConstraint("CK_" + columnDefinition.getColumnName(), "CHECK", checkCondition);
-//                            break;
-//                        case DEFAULT:
-//                            int defaultIndex = columnDefinition.getColumnSpecs().indexOf("DEFAULT");
-//                            String defaultCondition = columnDefinition.getColumnSpecs().get(defaultIndex + 1);
-//                            newTableMetaData.addConstraint("DF_" + columnDefinition.getColumnName(), "DEFAULT", defaultCondition);
-//                            break;
-//                        case REFERENCES:
-//                            int fkIndex = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
-//                            String referenceCondition = columnDefinition.getColumnSpecs().get(fkIndex + 1) + columnDefinition.getColumnSpecs().get(fkIndex + 2);
-//                            newTableMetaData.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY", referenceCondition);
-//                            break;
-//                    }
-//                }
-//            }
+            for (String constraint : constraintsArray) {
+                // 再判断是哪个约束
+                switch (constraint) {
+                    case "PRIMARY_KEY":
+                        table.addConstraint("PK_" + columnName, "PRIMARY KEY", null);
+                        break;
+                    case "NOT_NULL":
+                        table.addConstraint("NN_" + columnName, "NOT NULL", null);
+                        break;
+                    case "UNIQUE":
+                        table.addConstraint("UK_" +columnName, "UNIQUE", null);
+                        break;
+                    case "CHECK":
+                        int checkIndex = constraints.indexOf("CHECK")+5;
+                        int startIndex=constraints.indexOf("(",checkIndex);
+                        int endIndex=constraints.indexOf(")",startIndex)+1;
+                        String checkCondition = constraints.substring(startIndex,endIndex).trim();
+                        //System.out.println(checkCondition);
+                        table.addConstraint("CK_" + columnName, "CHECK", checkCondition);
+                        break;
+                    case "DEFAULT":
+                        int defaultIndex = constraints.indexOf("DEFAULT")+8;
+                        int endIndex2=constraints.indexOf(" ",defaultIndex);
+                        if(endIndex2==-1){
+                            endIndex2=constraints.length();
+                        }
+                        String defaultCondition =constraints.substring(defaultIndex,endIndex2);
+                        //System.out.println(defaultCondition);
+                        table.addConstraint("DF_" + columnName, "DEFAULT", defaultCondition);
+                        break;
+//                    case ConstraintType.REFERENCES:
+//                        int fkIndex = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
+//                        String referenceCondition = columnDefinition.getColumnSpecs().get(fkIndex + 1) + columnDefinition.getColumnSpecs().get(fkIndex + 2);
+//                        newTableMetaData.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY", referenceCondition);
+//                        break;
+                }
+            }
 
 
-
+            //写入db文件
+            FileUtils.writeObjectToFile(db, "./db.txt");
         } else {
             // 其他情况
             System.out.println("The statement does not start with DROP or ADD");
@@ -1485,5 +1489,66 @@ public class Processor {
 //        }
 //        else return "";
 //    }
+
+    //ALTER TABLE AA ADD COLUMN COLUMN3 VARCHAR(20) NOT NULL UNIQUE
+    //ALTER TABLE AA ADD COLUMN COLUMN4 INT CHECK (COLUMN4 > 2)
+    private static String extractColumnName(String sqlFragment) {
+        int startIndex = sqlFragment.indexOf("COLUMN") + "COLUMN".length()+1;//空格后第一个位置
+        int endIndex = sqlFragment.indexOf(' ', startIndex);
+        if (endIndex == -1) {
+            endIndex = sqlFragment.length();
+        }
+        return sqlFragment.substring(startIndex, endIndex).trim();
+    }
+
+    private static String extractFieldType(String sqlFragment) {
+        String columnName = extractColumnName(sqlFragment);
+        int startIndex = sqlFragment.indexOf(columnName) + columnName.length() + 1; // +1 for space
+        int endIndex = sqlFragment.indexOf('(', startIndex);
+        int closeIndex=-9999;
+        int checkIndex=sqlFragment.toUpperCase().indexOf("CHECK");
+        if (endIndex == -1) {
+            //没有长度约束
+            closeIndex=sqlFragment.indexOf(' ', startIndex);
+        }else {
+            //有check有长度约束
+            if(checkIndex!=-1){
+                //如果有长度约束
+                closeIndex = sqlFragment.indexOf(')', endIndex);
+                if (closeIndex == -1) {
+                    System.out.println("缺少）");
+                    return null;
+                }
+            }
+            //有check没有长度约束
+            else if (checkIndex!=-1 && checkIndex<closeIndex) {
+                closeIndex=sqlFragment.indexOf(' ', startIndex);
+            }
+            //没有check也没有长度约束 --不存在括号
+            else if (checkIndex==-1 && sqlFragment.indexOf(')', endIndex)==-1) {
+                closeIndex=sqlFragment.indexOf(' ', startIndex);
+            }
+            //没有check有长度约束
+            else if(checkIndex==-1 && sqlFragment.indexOf(')', endIndex)!=-1 ){
+                closeIndex = sqlFragment.indexOf(')', endIndex);
+
+            }
+        }
+
+        return sqlFragment.substring(startIndex, closeIndex + 1).trim();
+    }
+
+    private static String extractFieldConstraints(String sqlFragment) {
+        String fieldType = extractFieldType(sqlFragment);
+        if (fieldType == null) {
+            return null;
+        }
+        int startIndex = sqlFragment.indexOf(fieldType) + fieldType.length();
+        int endIndex = sqlFragment.indexOf(';', startIndex);
+        if (endIndex == -1) {
+            endIndex = sqlFragment.length(); // If no semicolon, assume end of string
+        }
+        return sqlFragment.substring(startIndex, endIndex).trim();
+    }
 }
 
