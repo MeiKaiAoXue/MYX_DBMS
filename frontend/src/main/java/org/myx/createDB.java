@@ -28,10 +28,10 @@ public class createDB implements ActionListener{
             public void mouseClicked(MouseEvent e) {
                 if(e.getSource() == Create){
                     String dbName = DBname.getText();
-                    String filePath = "./" + dbName + ".txt";
+                    String filePath = "./" + dbName ;
                     try {
                         initDB(filePath);
-                        initAdminUser("./users.txt","admin","123456");
+                        initAdminUser("./" + dbName + "./users.txt","admin","123456");
                         FileUtils.saveDBName(dbName);
 
                         // 显示创建成功的消息

@@ -61,11 +61,18 @@ public class FileUtils {
 
 
     public static void initDB(String filePath) {
+        File dbDirectory = new File(filePath);
+        if (!dbDirectory.exists()) {
+            dbDirectory.mkdirs(); // 创建目录
+        }
+
+        String metaDataFilePath = filePath + "/db.txt"; // 在目录中创建 db.txt
         DBMetaData db = new DBMetaData("DB1");
         TableMetaData1 initTable = new TableMetaData1("INIT_TABLE");
         db.addTable(initTable);
-        writeObjectToFile(db, filePath);
+        writeObjectToFile(db, metaDataFilePath);
     }
+
 
     public static void deleteDB(String dbName){
         File file = new File("./" + dbName + ".txt");
