@@ -10,22 +10,21 @@ import net.sf.jsqlparser.statement.alter.AlterExpression;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
+import net.sf.jsqlparser.statement.grant.Grant;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.util.deparser.GrantDeParser;
 import net.sf.jsqlparser.statement.update.UpdateSet;
 import org.jetbrains.annotations.NotNull;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
-import org.myx.fileIo.metadata.ConstraintType;
-import org.myx.fileIo.metadata.ConstraintsMetaData;
-import org.myx.fileIo.metadata.DBMetaData;
-import org.myx.fileIo.metadata.TableMetaData1;
+import org.myx.fileIo.metadata.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +35,11 @@ import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Processor {
+public class    Processor {
+    private static String currentDBName;
+    public static void setCurrentDBName(String dbName){
+        currentDBName = "./" + dbName + ".txt";
+    }
 
     public static void process(String sql) {
         try {
@@ -55,6 +58,10 @@ public class Processor {
             } else if (statement instanceof Update) {
                 processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
+//                processDelete((Delete) statement);
+            } else if (statement instanceof  Grant) {
+//                processGrant((Grant) statement);
+            } else if (statement instanceof Delete){
                 processDelete((Delete) statement);
             } else {
                 Logging.log("Error processing SQL: " + sql);
@@ -476,7 +483,7 @@ public class Processor {
      * @param Select
      */
     private  static  void  processSelect(Select statement) throws  IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
         PlainSelect plainSelect = statement.getPlainSelect();
 //        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
 //        System.out.println("【查询字段】：" + plainSelect.getSelectItems());
@@ -1051,7 +1058,7 @@ public class Processor {
     }
 
     private static void processInsert(Insert statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
 
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
@@ -1397,7 +1404,7 @@ public class Processor {
      * @param createTable
      */
     private static void processCreate(CreateTable createTable) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
 
         String tableName = createTable.getTable().getName();
         TableMetaData1 checkTable = db.getTable(tableName);
@@ -1459,7 +1466,7 @@ public class Processor {
 
         });
         db.addTable(newTableMetaData);
-        FileUtils.writeObjectToFile(db, "./db.txt");
+        FileUtils.writeObjectToFile(db, currentDBName);
 
         Table table = new Table(tableName, newTableMetaData.getColumns());
         // 表文件中只存表对象中的values，不存表名和字段
