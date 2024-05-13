@@ -75,13 +75,40 @@ public class FileUtils {
 
 
     public static void deleteDB(String dbName){
-        File file = new File("./" + dbName + ".txt");
-        if (file.delete()) {
-            System.out.println("数据库文件已删除：" + dbName);
+        if (dbName == null || dbName.trim().isEmpty()) {
+            System.out.println("数据库名称无效，取消删除操作。");
+            return;
+        }
+
+        File directory = new File("./" + dbName);  // 定位到数据库对应的目录
+
+        // 确保不是在删除根目录或关键目录
+        if (directory.exists() && directory.isDirectory() && !directory.getAbsolutePath().equals(new File(".").getAbsolutePath())) {
+            if (deleteDirectory(directory)) {
+                System.out.println("数据库目录及内容已删除：" + dbName);
+            } else {
+                System.out.println("无法删除数据库目录：" + dbName);
+            }
         } else {
-            System.out.println("无法删除数据库文件：" + dbName);
+            System.out.println("要删除的目录不存在或路径错误：" + directory.getAbsolutePath());
         }
     }
+    public static boolean deleteDirectory(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            if (children != null) {
+                for (String child : children) {
+                    boolean success = deleteDirectory(new File(dir, child));
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+            return dir.delete();
+        }
+        return dir != null && dir.delete();
+    }
+
     public static void updateDBList(String dbName) {
         List<String> dbNames = loadDBNames(); // 读取现有的数据库名称列表
         dbNames.removeIf(name -> name.equals(dbName)); // 移除指定的数据库名称
