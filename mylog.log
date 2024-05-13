@@ -28,3 +28,7 @@
 信息: 有查询列不存在于表中
 4月 29, 2024 3:36:16 下午 org.myx.fileIo.Logging log
 信息: where后有查询列不存在于表中
+5月 07, 2024 10:09:03 下午 org.myx.fileIo.Logging log
+信息: Value OKAY is not valid for column COLUMN2 of type VARCHAR(20)
+5月 07, 2024 10:11:17 下午 org.myx.fileIo.Logging log
+信息: Value OKAY is not valid for column COLUMN2 of type VARCHAR(20)

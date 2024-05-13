@@ -6,6 +6,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.alter.Alter;
+import net.sf.jsqlparser.statement.alter.AlterExpression;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
@@ -17,6 +18,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.deparser.GrantDeParser;
+import net.sf.jsqlparser.statement.update.UpdateSet;
 import org.jetbrains.annotations.NotNull;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
@@ -39,7 +41,7 @@ public class    Processor {
         currentDBName = "./" + dbName + ".txt";
     }
 
-    public static void process(String sql){
+    public static void process(String sql) {
         try {
             Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
 
@@ -48,24 +50,432 @@ public class    Processor {
             } else if (statement instanceof Drop) {
 //                processDrop((Drop) statement);
             } else if (statement instanceof Alter) {
-//                processAlter((Alter) statement);
+                processAlter((Alter) statement);
             } else if (statement instanceof Select) {
                 processSelect((Select) statement);
             } else if (statement instanceof Insert) {
                 processInsert((Insert) statement);
             } else if (statement instanceof Update) {
-//                processUpdate((Update) statement);
+                processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
 //                processDelete((Delete) statement);
             } else if (statement instanceof  Grant) {
 //                processGrant((Grant) statement);
-            }else {
+            } else if (statement instanceof Delete){
+                processDelete((Delete) statement);
+            } else {
                 Logging.log("Error processing SQL: " + sql);
                 throw new IllegalArgumentException("Unsupported SQL statement: " + sql);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    /**
+     * 处理 Alter Table语句
+     *
+     * @param Alter
+     */
+    private static void processAlter(Alter statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        String tableName = statement.getTable().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        List<TableMetaData1> tables=db.getTables();
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+        //"ALTER TABLE AA DROP COLUMN COLUMN1"
+        System.out.println(tableName);
+        System.out.println(statement.getAlterExpressions().toString());
+        String alterStatment=statement.getAlterExpressions().toString();
+        String columnName=null;
+        String dataTypeWithConstraints=null;
+        String constraints=null;
+        String dataType=null;
+        // 去除开头可能的空白字符
+        alterStatment = alterStatment.trim();
+        //判断语句是drop还是add或是修改
+        if (alterStatment.startsWith("[DROP")) {
+            // 语句以DROP开头
+            //System.out.println("The statement starts with DROP");
+            //drop单列
+            //判断是否有元组记录，没有直接删除db中的列，有则先删除数据再删除列-->不用考虑，无论如何都要删db.txt，不影响修改xx.txt
+            String dropColName = statement.getAlterExpressions().get(0).getColumnName();
+            System.out.println("[删除列的列名是]"+dropColName);
+            int dropColindex=-9999;
+            for (int i=0;i<table_columns.size();i++){
+                if(table_columns.get(i).getColumnName().equals(dropColName)){
+                    dropColindex=i;
+                    break;
+                }
+            }
+            if(dropColindex<0){
+                Logging.log("alter drop中的对应列不存在");
+                System.out.println("alter drop中的对应列不存在");
+                return;
+            }
+//
+
+            //不存在元组时
+            table_columns.remove(dropColindex);
+            //删除table实例中的column
+            table.dropColumn(table_columns);
+            //修改db.txt
+            FileUtils.writeObjectToFile(db, "./db.txt");
+
+            if(all_values.size()>0){
+                for(int i=all_values.size()-1;i>=0;i--){
+                    //只要有结果，无论object存储结果是否为空删除该位置
+                    all_values.get(i).remove(dropColindex);
+                }
+                FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+            }
+
+        } else if (alterStatment.startsWith("[ADD")) {
+            // 语句以ADD开头
+            System.out.println("The statement starts with ADD");
+            //对add单列进行操作,转换成createtable中的语句
+            // 移除方括号
+            String trimmedSqlFragment = alterStatment.replaceAll("\\[|\\]", "");
+            columnName = extractColumnName(trimmedSqlFragment);
+            String fieldType = extractFieldType(trimmedSqlFragment);
+            constraints = extractFieldConstraints(trimmedSqlFragment);
+            System.out.println("[新添加的列名]:" + columnName);
+            System.out.println("[字段类型]:" + fieldType);
+            System.out.println("[字段约束]:" + (constraints == null ? "null" : constraints));
+            String regex2 = "^(.*?)\\(";
+            Pattern pattern = Pattern.compile(regex2);
+            Matcher matcher = pattern.matcher(fieldType);
+            if (matcher.find()) {
+                dataType = matcher.group(1).replace(" ","");
+                System.out.println("单独提取字段类型测试：[datatype]--"+dataType); // 输出：someTextHere
+            }else{
+                dataType=fieldType;
+                System.out.println("字段类型未设置长度约束");
+            }
+            // 给表元数据添加列元数据
+            if (dataType.equals("VARCHAR"))
+            {
+                table.addColumn(columnName, dataType);
+            }
+            else {
+                table.addColumn(columnName, dataType);
+            }
+            //约束格式化为ConstraintType中枚举类型
+            String replacedConstraintsString = constraints
+                    .replace("PRIMARY KEY", "PRIMARY_KEY")
+                    .replace("NOT NULL", "NOT_NULL");
+
+            //System.out.println(replacedConstraintsString);//成功
+            //约束
+            String[] constraintsArray = replacedConstraintsString.trim().split("\\s+"); // 使用空白字符进行分割
+
+            // 输出分割后的约束数组 --成功
+//            for (String constraint : constraintsArray) {
+//                System.out.println(constraint);
+//            }
+            // 处理列约束
+            for (String constraint : constraintsArray) {
+                // 再判断是哪个约束
+                switch (constraint) {
+                    case "PRIMARY_KEY":
+                        table.addConstraint("PK_" + columnName, "PRIMARY KEY", null);
+                        break;
+                    case "NOT_NULL":
+                        table.addConstraint("NN_" + columnName, "NOT NULL", null);
+                        break;
+                    case "UNIQUE":
+                        table.addConstraint("UK_" +columnName, "UNIQUE", null);
+                        break;
+                    case "CHECK":
+                        int checkIndex = constraints.indexOf("CHECK")+5;
+                        int startIndex=constraints.indexOf("(",checkIndex);
+                        int endIndex=constraints.indexOf(")",startIndex)+1;
+                        String checkCondition = constraints.substring(startIndex,endIndex).trim();
+                        //System.out.println(checkCondition);
+                        table.addConstraint("CK_" + columnName, "CHECK", checkCondition);
+                        break;
+                    case "DEFAULT":
+                        int defaultIndex = constraints.indexOf("DEFAULT")+8;
+                        int endIndex2=constraints.indexOf(" ",defaultIndex);
+                        if(endIndex2==-1){
+                            endIndex2=constraints.length();
+                        }
+                        String defaultCondition =constraints.substring(defaultIndex,endIndex2);
+                        //System.out.println(defaultCondition);
+                        table.addConstraint("DF_" + columnName, "DEFAULT", defaultCondition);
+                        break;
+//                    case ConstraintType.REFERENCES:
+//                        int fkIndex = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
+//                        String referenceCondition = columnDefinition.getColumnSpecs().get(fkIndex + 1) + columnDefinition.getColumnSpecs().get(fkIndex + 2);
+//                        newTableMetaData.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY", referenceCondition);
+//                        break;
+                }
+            }
+
+
+            //写入db文件
+            FileUtils.writeObjectToFile(db, "./db.txt");
+        } else {
+            // 其他情况
+            System.out.println("The statement does not start with DROP or ADD");
+        }
+
+    }
+
+    /**
+     * 处理DELETE Table语句
+     *
+     * @param Delete
+     */
+    private static void processDelete(Delete statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        String tableName = statement.getTable().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+        //DELETE FROM AA WHERE column1 = 2
+        System.out.println(tableName);
+        System.out.println(statement.getWhere());
+
+        //对比where确定修改行坐标
+        String whereColumnName=null;
+        String whereValue=null;
+        String equalSign=null;
+        String whereStatement = statement.getWhere().toString();
+// 定义正则表达式，匹配可能的运算符以及前后内容，支持无运算符和引号内的值
+        String regex = "(\\w+)\\s*(?:(<=|>=|<>|=|<|>)\\s+)?('([^']*)'|(\\d+))";
+// 创建Pattern对象
+        Pattern pattern = Pattern.compile(regex);
+
+// 创建Matcher对象
+        Matcher matcher = pattern.matcher(whereStatement);
+
+// 尝试匹配
+        if (matcher.find()) { // 使用find()，因为matches()要求整个字符串匹配
+            // 提取并打印结果
+             whereColumnName = matcher.group(1); // 运算符前的部分（列名）
+            equalSign = matcher.group(2); // 运算符（如果有的话）
+            whereValue = matcher.group(3); // 引号内的值（包括引号）或数字（没有引号）
+
+            // 如果找到了引号内的值，则去掉引号
+            whereValue = whereValue.startsWith("'") && whereValue.endsWith("'") ?
+                    whereValue.substring(1, whereValue.length() - 1) :
+                    whereValue;
+
+            // 如果没有找到运算符，则默认使用等号
+            if (equalSign == null || equalSign.isEmpty()) {
+                //TODO:如果where中不包含大于小于等于等常用符号如何进行判断
+                return;
+            }
+
+            // 输出结果
+            System.out.println("Column Name: " + whereColumnName);
+            System.out.println("Operator: " + equalSign);
+            System.out.println("Value: " + whereValue);
+        } else {
+            System.out.println("No match found in the input string.");
+        }
+        //查找where删除对应的列index
+        int rowIndex=-9999;
+        int whereColIndex=-9999;
+        for(int i=0;i<table_columns.size();i++){
+            if(table_columns.get(i).getColumnName().toString().equals(whereColumnName)){
+                whereColIndex=i;
+                break;
+            }
+        }
+        if(whereColIndex<0){
+            Logging.log("where 语句中的列不存在 ");
+            System.out.println("where 语句中的列不存在 ");
+            return;
+        }
+        if(equalSign.equals("=")){
+            //找到对应的行
+            for(int i=0;i<all_values.size();i++){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.equals(whereValue)){
+                    rowIndex=i;
+                    break;
+                }
+            }
+            if(rowIndex<0)
+            {
+                Logging.log("未找到对应删除的行");
+                System.out.println("未找到对应删除的行");
+                return;
+            }
+            //删除该行
+            all_values.remove(rowIndex);
+        }else if (equalSign.equals(">"))
+        //多行删除倒序处理避免行位置自动填补导致的下标变化
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)>0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+            }
+
+        }else if (equalSign.equals(">="))
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)>0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+                if(compareValue.compareTo(whereValue)==0){
+                    all_values.remove(i);
+                }
+            }
+
+        }else if (equalSign.equals("<"))
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)<0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+            }
+
+        }else if (equalSign.equals("<="))
+        {
+            //找到对应的行数组
+            for(int i=all_values.size()-1;i>=0;i--){
+                String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+                if(compareValue.compareTo(whereValue)<0){
+                    all_values.remove(i);//删除符合条件的行
+                }
+                if(compareValue.compareTo(whereValue)==0){
+                    all_values.remove(i);
+                }
+            }
+
+        }
+
+
+        FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+    }
+
+    /**
+     * 处理update Table语句
+     *
+     * @param Update
+     */
+    private static void processUpdate(Update statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        String tableName = statement.getTable().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+//        System.out.println(statement.getTable());
+//        System.out.println("【更新目标表】：" + statement.getTable());
+        List<UpdateSet> updateSets = statement.getUpdateSets();
+        for (UpdateSet updateSet : updateSets) {
+//            System.out.println("【更新字段】：" + updateSet.getColumns());
+//            System.out.println("【更新字】：" + updateSet.getValues());
+        }
+//        System.out.println("【更新条件】：" + statement.getWhere());
+//        System.out.println("--------------------------------------------------------");
+        String changeValue = updateSets.get(0).getValues().toString();
+        //找到对应的列
+        int changeColumnIndex = -9999;
+        for (int i = 0; i < table_columns.size(); i++) {
+            //只有一列更新，所以updateSets.get(0)
+            if (table_columns.get(i).getColumnName().equals(updateSets.get(0).getColumns().toString())) {
+                changeColumnIndex = i;
+                break;
+            }
+        }
+        //找到all_values中的对应列修改值
+        //判断每个字段的值是否匹配
+        String columnName = table_columns.get(changeColumnIndex).getColumnName();
+        if (!isValid(updateSets.get(0).getValues().toString(), table.getColumnType(columnName))) {
+            Logging.log("Value " + updateSets.get(0).getValues().toString() + " is not valid for column " + columnName + " of type " + table.getColumnType(columnName));
+            return;
+        } else {
+            //字段值匹配测试输出
+            System.out.println("Value " + updateSets.get(0).getValues().toString() + " is valid for column " + columnName + " of type " + table.getColumnType(columnName));
+        } // 判断约束条件是否匹配
+        if (!checkConstraints(db, table, all_values, columnName, updateSets.get(0).getValues().toString())) {
+            Logging.log("Constraint check failed for column " + columnName + " with value " + updateSets.get(0).getValues().toString());
+            return;
+        } else {
+            //约束匹配测试输出
+            System.out.println("Constraint check passed for column " + updateSets.get(0).getValues().toString() + " is valid for column " + columnName + " of type " + table.getColumnType(columnName));
+        }
+
+        //对比where确定修改行坐标
+        String whereStatement = statement.getWhere().toString();
+        //String input = "COLUMN2 = 'HELLO'";
+
+        // 查找等号的位置
+        int equalSignIndex = whereStatement.indexOf('=');
+        String whereColumnName=null;
+        String whereValue=null;
+        String equalSign=null;
+        // 检查是否找到了等号
+        if (equalSignIndex != -1) {
+            // 提取列名（等号之前的内容）
+            whereColumnName = whereStatement.substring(0, equalSignIndex).trim();
+            // 提取值（等号之后的内容，并去掉前后的引号）
+            whereValue = whereStatement.substring(equalSignIndex + 1).trim();
+            // 去除值两边的引号（如果有的话）
+            if (whereValue.startsWith("'") && whereValue.endsWith("'")) {
+                whereValue = whereValue.substring(1, whereValue.length() - 1);
+            }
+
+            // 等号本身
+            equalSign = "=";
+
+            // 打印结果
+//            System.out.println("Column Name: " + whereColumnName);
+//            System.out.println("Equal Sign: " + equalSign);
+//            System.out.println("Value: " + whereValue);
+        } else {
+            System.out.println("No equal sign found in the string.");
+        }
+        int rowIndex=-9999;
+        int whereColIndex=-9999;
+        for(int i=0;i<table_columns.size();i++){
+            if(table_columns.get(i).getColumnName().toString().equals(whereColumnName)){
+                whereColIndex=i;
+                break;
+            }
+        }
+        if(whereColIndex<0){
+            Logging.log("where 语句中的列不存在 ");
+            System.out.println("where 语句中的列不存在 ");
+            return;
+        }
+        for(int i=0;i<all_values.size();i++){
+            String compareValue=all_values.get(i).get(whereColIndex).toString().replace("'", "");
+            if(compareValue.equals(whereValue)){
+                rowIndex=i;
+                break;
+            }
+        }
+        //将all_values中的第rowIndex行的第changeColumnIndex列改为对应值
+        all_values.get(rowIndex).set(changeColumnIndex,changeValue);
+        FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+
     }
 
     /**
@@ -647,8 +1057,6 @@ public class    Processor {
 
     }
 
-
-
     private static void processInsert(Insert statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
 
@@ -1088,5 +1496,66 @@ public class    Processor {
 //        }
 //        else return "";
 //    }
+
+    //ALTER TABLE AA ADD COLUMN COLUMN3 VARCHAR(20) NOT NULL UNIQUE
+    //ALTER TABLE AA ADD COLUMN COLUMN4 INT CHECK (COLUMN4 > 2)
+    private static String extractColumnName(String sqlFragment) {
+        int startIndex = sqlFragment.indexOf("COLUMN") + "COLUMN".length()+1;//空格后第一个位置
+        int endIndex = sqlFragment.indexOf(' ', startIndex);
+        if (endIndex == -1) {
+            endIndex = sqlFragment.length();
+        }
+        return sqlFragment.substring(startIndex, endIndex).trim();
+    }
+
+    private static String extractFieldType(String sqlFragment) {
+        String columnName = extractColumnName(sqlFragment);
+        int startIndex = sqlFragment.indexOf(columnName) + columnName.length() + 1; // +1 for space
+        int endIndex = sqlFragment.indexOf('(', startIndex);
+        int closeIndex=-9999;
+        int checkIndex=sqlFragment.toUpperCase().indexOf("CHECK");
+        if (endIndex == -1) {
+            //没有长度约束
+            closeIndex=sqlFragment.indexOf(' ', startIndex);
+        }else {
+            //有check有长度约束
+            if(checkIndex!=-1){
+                //如果有长度约束
+                closeIndex = sqlFragment.indexOf(')', endIndex);
+                if (closeIndex == -1) {
+                    System.out.println("缺少）");
+                    return null;
+                }
+            }
+            //有check没有长度约束
+            else if (checkIndex!=-1 && checkIndex<closeIndex) {
+                closeIndex=sqlFragment.indexOf(' ', startIndex);
+            }
+            //没有check也没有长度约束 --不存在括号
+            else if (checkIndex==-1 && sqlFragment.indexOf(')', endIndex)==-1) {
+                closeIndex=sqlFragment.indexOf(' ', startIndex);
+            }
+            //没有check有长度约束
+            else if(checkIndex==-1 && sqlFragment.indexOf(')', endIndex)!=-1 ){
+                closeIndex = sqlFragment.indexOf(')', endIndex);
+
+            }
+        }
+
+        return sqlFragment.substring(startIndex, closeIndex + 1).trim();
+    }
+
+    private static String extractFieldConstraints(String sqlFragment) {
+        String fieldType = extractFieldType(sqlFragment);
+        if (fieldType == null) {
+            return null;
+        }
+        int startIndex = sqlFragment.indexOf(fieldType) + fieldType.length();
+        int endIndex = sqlFragment.indexOf(';', startIndex);
+        if (endIndex == -1) {
+            endIndex = sqlFragment.length(); // If no semicolon, assume end of string
+        }
+        return sqlFragment.substring(startIndex, endIndex).trim();
+    }
 }
 
