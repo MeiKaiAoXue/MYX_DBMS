@@ -32,3 +32,17 @@
 信息: Value OKAY is not valid for column COLUMN2 of type VARCHAR(20)
 5月 07, 2024 10:11:17 下午 org.myx.fileIo.Logging log
 信息: Value OKAY is not valid for column COLUMN2 of type VARCHAR(20)
+5月 14, 2024 8:14:59 下午 org.myx.fileIo.Logging log
+信息: Value 22301103 is not valid for column SNO of type VARCHAR2
+5月 14, 2024 8:58:12 下午 org.myx.fileIo.Logging log
+信息: Value 22301103 is not valid for column SNO of type VARCHAR2
+5月 14, 2024 9:03:10 下午 org.myx.fileIo.Logging log
+信息: Value 22301103 is not valid for column SNO of type VARCHAR2
+5月 14, 2024 9:04:29 下午 org.myx.fileIo.Logging log
+信息: Value 223011 is not valid for column SNO of type VARCHAR2
+5月 14, 2024 9:06:12 下午 org.myx.fileIo.Logging log
+信息: Value "223011" is not valid for column SNO of type VARCHAR2
+5月 14, 2024 9:08:25 下午 org.myx.fileIo.Logging log
+信息: Value 12 is not valid for column SNO of type VARCHAR2
+5月 14, 2024 9:10:49 下午 org.myx.fileIo.Logging log
+信息: Value 12 is not valid for column SNO of type VARCHAR2
