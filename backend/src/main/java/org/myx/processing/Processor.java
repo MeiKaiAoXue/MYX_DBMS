@@ -635,7 +635,8 @@ public class Processor {
                         System.out.println("");
                     }
                 }
-            }else {
+            }
+            else {
                 //TODO:完成where后一个的判断 加上AND的多判断未完成
                 String whereString = where.toString();
                 // 定义正则表达式，匹配可能的运算符以及前后内容
@@ -1125,6 +1126,11 @@ public class Processor {
         }
         else {
             //view select
+            //读取select view中select的列和from表名 然后从基表中完成输出
+            String fromTable=db.getView(tableName.toString()).getFromTable();
+            List<String> columns_in_view=db.getView(tableName.toString()).getColumns();//select中有的列
+            //解析select语句
+
 
 
         }
@@ -1570,8 +1576,6 @@ public class Processor {
 //        else return "";
 //    }
 
-    //ALTER TABLE AA ADD COLUMN COLUMN3 VARCHAR(20) NOT NULL UNIQUE
-    //ALTER TABLE AA ADD COLUMN COLUMN4 INT CHECK (COLUMN4 > 2)
     private static String extractColumnName(String sqlFragment) {
         int startIndex = sqlFragment.indexOf("COLUMN") + "COLUMN".length()+1;//空格后第一个位置
         int endIndex = sqlFragment.indexOf(' ', startIndex);

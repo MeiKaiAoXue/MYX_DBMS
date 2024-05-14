@@ -45,7 +45,8 @@ public class DBMetaData implements Serializable {
     }
 
     public List<View> getViews(){return  views;};
-    public void addView(View view){views.add(view);};
+   public void addView(View view){views.add(view);};
+
 
     public  void removeView(View view){views.remove(view);};
 
