@@ -12,9 +12,12 @@ public class DBMetaData implements Serializable {
     private String dbName;
     private List<TableMetaData1> tables;
 
+    private List<View> views;
+
     public DBMetaData(String dbName) {
         this.dbName = dbName;
         this.tables = new ArrayList<>();
+        this.views=new ArrayList<>();
     }
 
     public String getDbName() {
@@ -41,9 +44,23 @@ public class DBMetaData implements Serializable {
         tables.remove(table);
     }
 
+    public List<View> getViews(){return  views;};
+    public void addView(View view){views.add(view);};
+
+    public  void removeView(View view){views.remove(view);};
+
+    public  View getView(String viewName){
+        for (View view:views){
+            if(view.getViewName().equals(viewName)){
+                return  view;
+            }
+        }
+        return  null;
+    }
     public String toString() {
         return "DBMetaData{" +
                 "tables:" + tables +
+                "views:" + views +
                 '}';
     }
 

@@ -33,5 +33,5 @@ public class TestAddColumn { public static void main(String[] args) {
     Processor.process(add_sql1);
     String select_sql="select * from AA";
     Processor.process(select_sql);
-}
+    }
 }
