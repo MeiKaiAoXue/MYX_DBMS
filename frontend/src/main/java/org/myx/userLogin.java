@@ -24,8 +24,10 @@ public class userLogin {
             @Override
             public void mouseClicked(MouseEvent e) {
                 try{
-                    if(authenticate(countFiled.getText(),passwordField.getText())){
-                       openForm();
+                    UserMetaData currentUser = authenticate(countFiled.getText(),passwordField.getText());
+                    if(currentUser!=null){
+                       openForm(currentUser);
+                       frame.dispose();
                     }else{
                         JOptionPane.showMessageDialog(frame,"用户名或者密码错误");
                     }
@@ -34,7 +36,7 @@ public class userLogin {
                     JOptionPane.showMessageDialog(frame,"无法获取用户数据");
                 }
             }
-            private boolean authenticate(String username, String password) throws IOException, ClassCastException, ClassNotFoundException {
+            private UserMetaData authenticate(String username, String password) throws IOException, ClassCastException, ClassNotFoundException {
                 try {
                     // 尝试从文件中读取对象
                     Object result = FileUtils.readObjectFromFile("./users.txt");
@@ -48,7 +50,8 @@ public class userLogin {
                             // 遍历用户列表，检查每个用户
                             for (UserMetaData user : users) {
                                 if (user.getUserName().equals(username) && user.getPassword().equals(password)) {
-                                    return true;  // 找到匹配的用户，验证成功
+                                    UserMetaData currentUser=user;
+                                    return user;  // 找到匹配的用户，验证成功
                                 }
                             }
                         }
@@ -57,10 +60,10 @@ public class userLogin {
                     e.printStackTrace();  // 打印异常信息
                     System.out.println("验证过程中出错：" + e.getMessage());
                 }
-                return false;  // 没有找到匹配的用户，验证失败
+                return null;  // 没有找到匹配的用户，验证失败
             }
-            private void openForm() {
-                Form form = new Form();
+            private void openForm(UserMetaData user) {
+                Form form = new Form(user);
                 form.frame = new JFrame("Form");
                 form.frame.setContentPane(form.formPanel);
                 form.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -70,4 +73,6 @@ public class userLogin {
             }
         });
     }
+
+
 }

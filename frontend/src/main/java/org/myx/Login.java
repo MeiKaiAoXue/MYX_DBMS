@@ -1,6 +1,9 @@
 package org.myx;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.ui.FlatListCellBorder;
 
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
@@ -62,7 +65,7 @@ public class Login {
     }
 
     public static void main(String[] args) {
-        FlatDarkLaf.setup();
+        FlatLightLaf.setup();
         Login login = new Login();
         login.frame = new JFrame("Login");
         login.frame.setContentPane(login.loginPanel);

@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
 public class    Processor {
     private static String currentDBName;
     public static void setCurrentDBName(String dbName){
-        currentDBName = "./" + dbName + ".txt";
+        currentDBName = "./" + dbName + "/db.txt";
     }
 
     public static void process(String sql) {
@@ -78,7 +78,7 @@ public class    Processor {
      * @param Alter
      */
     private static void processAlter(Alter statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
@@ -641,13 +641,22 @@ public class    Processor {
                     for (int i=0;i<table_columns.size();i++) {
                         System.out.print(table_columns.get(i).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(i).getColumnName()+" ");
                     }
+                    output.add("\n");
                     System.out.print("\n");
 
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                             System.out.print("  ");
+                            if(colIndex==0) {
+                                output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                            }else{
+                                rowElement = output.get(rowIndex+1);
+                                rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                output.set(rowIndex+1,rowElement);
+                            }
                         }
                         System.out.print("\n");
                     }
@@ -697,7 +706,9 @@ public class    Processor {
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
 

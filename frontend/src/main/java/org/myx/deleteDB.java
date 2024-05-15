@@ -3,6 +3,7 @@ package org.myx;
 import org.myx.fileIo.FileUtils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -21,7 +22,10 @@ public class deleteDB {
         for (String dbName : dbNames){
             JRadioButton radioButton = new JRadioButton(dbName);
             radioButton.setActionCommand(dbName);
+            Font newFont = new Font("Serif", Font.BOLD, 18); // 选择字体名称、样式和大小
+            radioButton.setFont(newFont);
             group.add(radioButton);
+            list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
             list.add(radioButton);
             list.add(Box.createVerticalStrut(10));
         }
