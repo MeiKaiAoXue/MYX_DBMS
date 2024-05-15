@@ -310,3 +310,23 @@
 信息: Constraint CK_COLUMN1 already exists
 5月 15, 2024 2:40:51 下午 org.myx.fileIo.Logging log
 信息: ADD CONSTRAINT failed
+5月 15, 2024 2:53:21 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:53:21 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:53:21 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:53:21 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:53:21 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:54:40 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:54:40 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:54:40 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:54:40 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:54:40 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
