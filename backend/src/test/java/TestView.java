@@ -29,9 +29,14 @@ public class TestView {
         String createView_sql1= "CREATE OR REPLACE VIEW VIEW_AA AS SELECT COLUMN1,COLUMN2 FROM AA;";
 
         Processor.process(createView_sql1);
-        String select_sql="select * from VIEW_AA";
+        //String select_sql="select * from VIEW_AA";
+        //String select_sql="select column2 from VIEW_AA ;";//通过
+
+        //String select_sql1="select column2 from VIEW_AA WHERE COLUMN2='hello';";
+        //String select_sql1="select * from VIEW_AA WHERE COLUMN2='hello';";
+        //Processor.process(select_sql);
         //String select_sql1="select column1 from VIEW_AA WHERE COLUMN2='hello';";
-        Processor.process(select_sql);
-        //Processor.process(select_sql1);
+        String select_sql1="select column2 from VIEW_AA WHERE COLUMN1 < '3';";
+        Processor.process(select_sql1);
     }
 }
