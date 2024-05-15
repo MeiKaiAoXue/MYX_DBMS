@@ -10,22 +10,21 @@ import net.sf.jsqlparser.statement.alter.AlterExpression;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
+import net.sf.jsqlparser.statement.grant.Grant;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
+import net.sf.jsqlparser.util.deparser.GrantDeParser;
 import net.sf.jsqlparser.statement.update.UpdateSet;
 import org.jetbrains.annotations.NotNull;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
-import org.myx.fileIo.metadata.ConstraintType;
-import org.myx.fileIo.metadata.ConstraintsMetaData;
-import org.myx.fileIo.metadata.DBMetaData;
-import org.myx.fileIo.metadata.TableMetaData1;
+import org.myx.fileIo.metadata.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,8 +34,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
-public class Processor {
+public class    Processor {
+    private static String currentDBName;
+    public static void setCurrentDBName(String dbName){
+        currentDBName = "./" + dbName + ".txt";
+    }
 
     public static void process(String sql) {
         try {
@@ -55,6 +59,10 @@ public class Processor {
             } else if (statement instanceof Update) {
                 processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
+//                processDelete((Delete) statement);
+            } else if (statement instanceof  Grant) {
+//                processGrant((Grant) statement);
+            } else if (statement instanceof Delete){
                 processDelete((Delete) statement);
             } else {
                 Logging.log("Error processing SQL: " + sql);
@@ -87,6 +95,10 @@ public class Processor {
         System.out.println(tableName);
         System.out.println(statement.getAlterExpressions().toString());
         String alterStatment=statement.getAlterExpressions().toString();
+        String columnName=null;
+        String dataTypeWithConstraints=null;
+        String constraints=null;
+        String dataType=null;
         // 去除开头可能的空白字符
         alterStatment = alterStatment.trim();
         // 全部转换成大写
@@ -134,82 +146,85 @@ public class Processor {
             //对add单列进行操作,转换成createtable中的语句
             // 移除方括号
             String trimmedSqlFragment = alterStatment.replaceAll("\\[|\\]", "");
-
-            // 使用正则表达式按照空格拆分字符串
-            String[] parts = trimmedSqlFragment.split("\\s+");
-
-            // 检查拆分后的部分数量是否足够
-            if (parts.length < 4) {
-                System.out.println("Invalid SQL fragment format: " + alterStatment);
-                return;
+            columnName = extractColumnName(trimmedSqlFragment);
+            String fieldType = extractFieldType(trimmedSqlFragment);
+            constraints = extractFieldConstraints(trimmedSqlFragment);
+            System.out.println("[新添加的列名]:" + columnName);
+            System.out.println("[字段类型]:" + fieldType);
+            System.out.println("[字段约束]:" + (constraints == null ? "null" : constraints));
+            String regex2 = "^(.*?)\\(";
+            Pattern pattern = Pattern.compile(regex2);
+            Matcher matcher = pattern.matcher(fieldType);
+            if (matcher.find()) {
+                dataType = matcher.group(1).replace(" ","");
+                System.out.println("单独提取字段类型测试：[datatype]--"+dataType); // 输出：someTextHere
+            }else{
+                dataType=fieldType;
+                System.out.println("字段类型未设置长度约束");
             }
-
-            // 提取列名和数据类型
-            String columnName = parts[2]; // 假设列名总是第三部分
-            String dataType = parts[3]; // 数据类型总是第四部分
-
-            // 提取约束（如果有的话）
-            StringBuilder constraintsBuilder = new StringBuilder();
-            for (int i = 4; i < parts.length; i++) {
-                if (constraintsBuilder.length() > 0) {
-                    constraintsBuilder.append(" ");
-                }
-                constraintsBuilder.append(parts[i]);
-            }
-            String constraints = constraintsBuilder.toString();
-
-            // 输出结果
-            System.out.println("Column Name: " + columnName);
-            System.out.println("Data Type: " + dataType);
-            System.out.println("Constraints: " + constraints);
-            System.out.println(); // 打印空行以分隔不同SQL片 段的输出
-
-            TableMetaData1 newTableMetaData = new TableMetaData1(tableName);
             // 给表元数据添加列元数据
-//            if (dataType.equals("VARCHAR"))
-//            {
-//                int index = columnDefinition.getColDataType().getArgumentsStringList().indexOf("VARCHAR");
-//                String columnType = dataType + "(" + columnDefinition.getColDataType().getArgumentsStringList().get(index + 1) + ")";
-//                newTableMetaData.addColumn(columnDefinition.getColumnName(), columnType);
-//            }
-//            else {
-//                newTableMetaData.addColumn(columnDefinition.getColumnName(), columnDefinition.getColDataType().getDataType());
-//            }
+            if (dataType.equals("VARCHAR"))
+            {
+                table.addColumn(columnName, dataType);
+            }
+            else {
+                table.addColumn(columnName, dataType);
+            }
+            //约束格式化为ConstraintType中枚举类型
+            String replacedConstraintsString = constraints
+                    .replace("PRIMARY KEY", "PRIMARY_KEY")
+                    .replace("NOT NULL", "NOT_NULL");
 
-            // 处理列约束
-//            for (ConstraintType constraint : ConstraintType.values()) {
-//                String constraintName = constraint.name().replace("_", " ");
-//                // 先判断有没有这个约束
-//                if (columnDefinition.toString().contains(constraintName)) {
-//                    // 再判断是哪个约束
-//                    switch (constraint) {
-//                        case PRIMARY_KEY:
-//                            newTableMetaData.addConstraint("PK_" + columnDefinition.getColumnName(), "PRIMARY KEY", null);
-//                            break;
-//                        case NOT_NULL:
-//                            newTableMetaData.addConstraint("NN_" + columnDefinition.getColumnName(), "NOT NULL", null);
-//                            break;
-//                        case UNIQUE:
-//                            newTableMetaData.addConstraint("UK_" + columnDefinition.getColumnName(), "UNIQUE", null);
-//                            break;
-//                        case CHECK:
-//                            int checkIndex = columnDefinition.getColumnSpecs().indexOf("CHECK");
-//                            String checkCondition = columnDefinition.getColumnSpecs().get(checkIndex + 1);
-//                            newTableMetaData.addConstraint("CK_" + columnDefinition.getColumnName(), "CHECK", checkCondition);
-//                            break;
-//                        case DEFAULT:
-//                            int defaultIndex = columnDefinition.getColumnSpecs().indexOf("DEFAULT");
-//                            String defaultCondition = columnDefinition.getColumnSpecs().get(defaultIndex + 1);
-//                            newTableMetaData.addConstraint("DF_" + columnDefinition.getColumnName(), "DEFAULT", defaultCondition);
-//                            break;
-//                        case REFERENCES:
-//                            int fkIndex = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
-//                            String referenceCondition = columnDefinition.getColumnSpecs().get(fkIndex + 1) + columnDefinition.getColumnSpecs().get(fkIndex + 2);
-//                            newTableMetaData.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY", referenceCondition);
-//                            break;
-//                    }
-//                }
+            //System.out.println(replacedConstraintsString);//成功
+            //约束
+            String[] constraintsArray = replacedConstraintsString.trim().split("\\s+"); // 使用空白字符进行分割
+
+            // 输出分割后的约束数组 --成功
+//            for (String constraint : constraintsArray) {
+//                System.out.println(constraint);
 //            }
+            // 处理列约束
+            for (String constraint : constraintsArray) {
+                // 再判断是哪个约束
+                switch (constraint) {
+                    case "PRIMARY_KEY":
+                        table.addConstraint("PK_" + columnName, "PRIMARY KEY", null);
+                        break;
+                    case "NOT_NULL":
+                        table.addConstraint("NN_" + columnName, "NOT NULL", null);
+                        break;
+                    case "UNIQUE":
+                        table.addConstraint("UK_" +columnName, "UNIQUE", null);
+                        break;
+                    case "CHECK":
+                        int checkIndex = constraints.indexOf("CHECK")+5;
+                        int startIndex=constraints.indexOf("(",checkIndex);
+                        int endIndex=constraints.indexOf(")",startIndex)+1;
+                        String checkCondition = constraints.substring(startIndex,endIndex).trim();
+                        //System.out.println(checkCondition);
+                        table.addConstraint("CK_" + columnName, "CHECK", checkCondition);
+                        break;
+                    case "DEFAULT":
+                        int defaultIndex = constraints.indexOf("DEFAULT")+8;
+                        int endIndex2=constraints.indexOf(" ",defaultIndex);
+                        if(endIndex2==-1){
+                            endIndex2=constraints.length();
+                        }
+                        String defaultCondition =constraints.substring(defaultIndex,endIndex2);
+                        //System.out.println(defaultCondition);
+                        table.addConstraint("DF_" + columnName, "DEFAULT", defaultCondition);
+                        break;
+//                    case ConstraintType.REFERENCES:
+//                        int fkIndex = columnDefinition.getColumnSpecs().indexOf("REFERENCES");
+//                        String referenceCondition = columnDefinition.getColumnSpecs().get(fkIndex + 1) + columnDefinition.getColumnSpecs().get(fkIndex + 2);
+//                        newTableMetaData.addConstraint("FK_" + columnDefinition.getColumnName(), "FOREIGN KEY", referenceCondition);
+//                        break;
+                }
+            }
+
+
+            //写入db文件
+            FileUtils.writeObjectToFile(db, "./db.txt");
         } else {
             // 其他情况
 //            System.out.println("The statement does not start with DROP or ADD");
@@ -272,7 +287,7 @@ public class Processor {
                     System.out.println("Constraint Condition: " + constraintCondition);
 
                     // 从约束名字中获取字段名
-                    String columnName = constraintName.split("_")[1];
+                    columnName = constraintName.split("_")[1];
 
                     // 检查表元数据中是否存在这个约束
                     boolean found = false;
@@ -328,7 +343,7 @@ public class Processor {
                 // 语句以MODIFY COLUMN开头
                 System.out.println("The statement starts with MODIFY COLUMN");
                 // 提取列名和数据类型
-                String columnName = alterStatment.split(" ")[2];
+                columnName = alterStatment.split(" ")[2];
                 String newDataType = alterStatment.split(" ")[3];
                 if (newDataType.equals("VARCHAR"))
                 {
@@ -632,9 +647,9 @@ public class Processor {
      * 处理select Table语句
      * @param Select
      */
-    private  static  void  processSelect(Select statement) throws  IOException {
+    public static  List<String>  processSelect(Select statement) throws  IOException {
         System.out.println("处理select Table语句");
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
         PlainSelect plainSelect = statement.getPlainSelect();
 //        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
 //        System.out.println("【查询字段】：" + plainSelect.getSelectItems());
@@ -653,7 +668,7 @@ public class Processor {
         if(tableName==null){
             Logging.log("Table " + tableName + " does not exist");
             Logging.log("Please create the table before inserting data");
-            return;
+            return null;
         }
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
         //获取where条件
@@ -661,6 +676,7 @@ public class Processor {
 
         //获取表中的所有列名
         TableMetaData1 table = db.getTable(tableName.toString());
+        List<String> output = new ArrayList<>();
         List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
 
         List<Integer> indexList = new ArrayList<>();//指定输出的列名下标
@@ -668,22 +684,38 @@ public class Processor {
         String beforeOperator = null;
         String operator = "";
         String afterOperator = null;
+        String firstElement ;
+        String rowElement;
         if(where==null){
             //*查询
+            List<Integer> outputColumnIndexes = new ArrayList<>();
             if(selectItemStrings.get(0).equals("*")){
                 for (int i=0;i<table_columns.size();i++) {
                     System.out.print(table_columns.get(i).getColumnName());
-                    System.out.print("  ");
+                    System.out.print(" ");
+                    if(output.isEmpty()) {
+                        output.add(table_columns.get(i).getColumnName() + " ");
+                    }else{
+                        firstElement = output.get(0);
+                        firstElement+=table_columns.get(i).getColumnName()+" ";
+                        output.set(0,firstElement);
+                    }
                 }
                 System.out.println();
                 for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
                     for (int colIndex=0;colIndex<all_values.get(rowIndex).size();colIndex++){
                         System.out.print(all_values.get(rowIndex).get(colIndex));
                         System.out.print("  ");
+                        if(colIndex==0) {
+                            output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                        }else{
+                            rowElement = output.get(rowIndex+1);
+                            rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                            output.set(rowIndex+1,rowElement);
+                        }
                     }
                     System.out.println();
                 }
-
             }else{
                 //指定列输出
                 for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
@@ -696,12 +728,13 @@ public class Processor {
                     //TODO:指明不存在的列名
                     System.out.println("有查询列不存在于表中");
                     Logging.log("有查询列不存在于表中");
-                    return;
+                    return null;
                 }
                 //输出
                 for (int x=0;x<selectItemStrings.size();x++){
                     System.out.print(selectItemStrings.get(x));
                     System.out.print("    ");
+                    output.add(selectItemStrings.get(x)+" ");
                 }
                 System.out.println("");
                 for(int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -711,10 +744,17 @@ public class Processor {
                                 //TODO:控制输出格式，使之对齐
                                 System.out.print(all_values.get(rowIndex).get(colIndex));
                                 System.out.print("    ");
+                                if(colIndex==0) {
+                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                }else{
+                                    rowElement = output.get(rowIndex+1);
+                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    output.set(rowIndex+1,rowElement);
+                                }
                             }
                         }
                     }
-                    System.out.println("");
+                    System.out.println("\n");
                 }
             }
         }else {
@@ -755,7 +795,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
                         String value = all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
@@ -790,7 +830,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
                     //where部分处理
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -804,7 +844,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
                         String value = all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
@@ -841,7 +881,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -862,8 +902,10 @@ public class Processor {
                         for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+ " ");
                         }
                         System.out.print("\n");
+                        output.add("\n");
                     }
                 }
                 else{
@@ -879,7 +921,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -893,7 +935,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -907,13 +949,16 @@ public class Processor {
                     for (int i=0;i<indexList.size();i++) {
                         System.out.print(table_columns.get(indexList.get(i)).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(indexList.get(i)).getColumnName()+" ");
                     }
                     System.out.print("\n");
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
 
@@ -932,7 +977,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -949,14 +994,18 @@ public class Processor {
                     for (int i=0;i<table_columns.size();i++) {
                         System.out.print(table_columns.get(i).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(i).getColumnName() + " ");
                     }
+                    output.add("\n");
                     System.out.print("\n");
 
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+ " ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
                 }
@@ -973,7 +1022,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -987,7 +1036,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -1010,7 +1059,9 @@ public class Processor {
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
 
@@ -1028,7 +1079,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -1066,7 +1117,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -1080,7 +1131,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -1094,7 +1145,10 @@ public class Processor {
                     for (int i=0;i<indexList.size();i++) {
                         System.out.print(table_columns.get(indexList.get(i)).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(indexList.get(i)).getColumnName()+ " ");
+
                     }
+                    output.add("\n");
                     System.out.print("\n");
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
@@ -1119,7 +1173,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -1136,14 +1190,18 @@ public class Processor {
                     for (int i=0;i<table_columns.size();i++) {
                         System.out.print(table_columns.get(i).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(i).getColumnName()+" ");
                     }
+                    output.add("\n");
                     System.out.print("\n");
 
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+"");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
                 }
@@ -1160,7 +1218,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -1174,7 +1232,7 @@ public class Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -1197,7 +1255,9 @@ public class Processor {
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
 
@@ -1205,7 +1265,7 @@ public class Processor {
             }
         }
 
-
+        return output;
     }
 
     /**
@@ -1214,7 +1274,7 @@ public class Processor {
      */
     private static void processInsert(Insert statement) throws IOException {
         System.out.println("处理insert语句");
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
 
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
@@ -1250,6 +1310,7 @@ public class Processor {
                     }
 
                     // 判断每个字段的值是否匹配
+
                     for (int i = 0; i < row.size(); i++) {
                         String columnName = table_columns.get(i).getColumnName();
                         String columnType = table.getColumnType(columnName);
@@ -1343,9 +1404,9 @@ public class Processor {
 //            System.out.println(constraintsMetaData.getConstraintName());
 //        }
 
-//        System.out.println("字段名：" + columnName);
+        System.out.println("字段名：" + columnName);
         int index = tableMD.getColumnIndex(columnName);
-//        System.out.println("字段索引：" + index);
+        System.out.println("字段索引：" + index);
         for (TableMetaData1.ConstraintsMetaData constraint : constraints) {
             // 判断是否是这个字段的约束
             if (!constraint.getConstraintName().contains(columnName))
@@ -1535,7 +1596,7 @@ public class Processor {
             // 判断是否为长度合适的字符串
 
             int length = Integer.parseInt(columnType.replaceAll("[^0-9]", ""));
-            System.out.println("长度是： " + length);
+//            System.out.println("长度是： " + length);
             if (value.equals("NULL")) return true; // NULL当作字符串处理
             else if (!(value.startsWith("'") && value.endsWith("'"))) return false;
 
@@ -1571,8 +1632,7 @@ public class Processor {
      * @param createTable
      */
     private static void processCreate(CreateTable createTable) throws IOException {
-        System.out.println("处理create table语句");
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
 
         String tableName = createTable.getTable().getName();
         TableMetaData1 checkTable = db.getTable(tableName);
@@ -1638,7 +1698,7 @@ public class Processor {
 
         });
         db.addTable(newTableMetaData);
-        FileUtils.writeObjectToFile(db, "./db.txt");
+        FileUtils.writeObjectToFile(db, currentDBName);
 
         Table table = new Table(tableName, newTableMetaData.getColumns());
         // 表文件中只存表对象中的values，不存表名和字段
@@ -1668,5 +1728,66 @@ public class Processor {
 //        }
 //        else return "";
 //    }
+
+    //ALTER TABLE AA ADD COLUMN COLUMN3 VARCHAR(20) NOT NULL UNIQUE
+    //ALTER TABLE AA ADD COLUMN COLUMN4 INT CHECK (COLUMN4 > 2)
+    private static String extractColumnName(String sqlFragment) {
+        int startIndex = sqlFragment.indexOf("COLUMN") + "COLUMN".length()+1;//空格后第一个位置
+        int endIndex = sqlFragment.indexOf(' ', startIndex);
+        if (endIndex == -1) {
+            endIndex = sqlFragment.length();
+        }
+        return sqlFragment.substring(startIndex, endIndex).trim();
+    }
+
+    private static String extractFieldType(String sqlFragment) {
+        String columnName = extractColumnName(sqlFragment);
+        int startIndex = sqlFragment.indexOf(columnName) + columnName.length() + 1; // +1 for space
+        int endIndex = sqlFragment.indexOf('(', startIndex);
+        int closeIndex=-9999;
+        int checkIndex=sqlFragment.toUpperCase().indexOf("CHECK");
+        if (endIndex == -1) {
+            //没有长度约束
+            closeIndex=sqlFragment.indexOf(' ', startIndex);
+        }else {
+            //有check有长度约束
+            if(checkIndex!=-1){
+                //如果有长度约束
+                closeIndex = sqlFragment.indexOf(')', endIndex);
+                if (closeIndex == -1) {
+                    System.out.println("缺少）");
+                    return null;
+                }
+            }
+            //有check没有长度约束
+            else if (checkIndex!=-1 && checkIndex<closeIndex) {
+                closeIndex=sqlFragment.indexOf(' ', startIndex);
+            }
+            //没有check也没有长度约束 --不存在括号
+            else if (checkIndex==-1 && sqlFragment.indexOf(')', endIndex)==-1) {
+                closeIndex=sqlFragment.indexOf(' ', startIndex);
+            }
+            //没有check有长度约束
+            else if(checkIndex==-1 && sqlFragment.indexOf(')', endIndex)!=-1 ){
+                closeIndex = sqlFragment.indexOf(')', endIndex);
+
+            }
+        }
+
+        return sqlFragment.substring(startIndex, closeIndex + 1).trim();
+    }
+
+    private static String extractFieldConstraints(String sqlFragment) {
+        String fieldType = extractFieldType(sqlFragment);
+        if (fieldType == null) {
+            return null;
+        }
+        int startIndex = sqlFragment.indexOf(fieldType) + fieldType.length();
+        int endIndex = sqlFragment.indexOf(';', startIndex);
+        if (endIndex == -1) {
+            endIndex = sqlFragment.length(); // If no semicolon, assume end of string
+        }
+        return sqlFragment.substring(startIndex, endIndex).trim();
+    }
 }
 

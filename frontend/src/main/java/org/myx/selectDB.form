@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.myx.selectDB">
+  <grid id="27dc6" binding="selectPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="9f6a4" class="javax.swing.JLabel">
+        <constraints border-constraint="North"/>
+        <properties>
+          <autoscrolls value="false"/>
+          <font size="26" style="1"/>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
+          <opaque value="false"/>
+          <preferredSize width="233" height="80"/>
+          <text value="选择数据库"/>
+        </properties>
+      </component>
+      <component id="4e745" class="javax.swing.JLabel">
+        <constraints border-constraint="West"/>
+        <properties>
+          <font size="18"/>
+          <horizontalAlignment value="0"/>
+          <preferredSize width="100" height="400"/>
+          <requestFocusEnabled value="true"/>
+          <text value="数据库列表"/>
+        </properties>
+      </component>
+      <component id="a2270" class="javax.swing.JButton" binding="selected">
+        <constraints border-constraint="South"/>
+        <properties>
+          <text value="确认"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>
