@@ -1,7 +1,6 @@
 package org.myx.fileIo.metadata;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
 
 public class UserMetaData implements Serializable{
@@ -10,45 +9,58 @@ public class UserMetaData implements Serializable{
         return userPrivileges;
     }
 
-    public enum UserType {
-        ADMIN,
-        USER
-    }
-
-    public enum UserStatus {
-        ACTIVE,
-        INACTIVE
-    }
 
     public enum Privilege {
-        READ("read"),
-        INSERT("insert"),
-        UPDATE("update"),
-        DELETE("delete"),
-        CREATE_USER("create_user"),
-        DELETE_USER("delete_user"),
-        DELETE_DATABASE("delete_database");
+        CONNECT("connect"),//只能select查看表
+        RESOURCE("resource"),//可以创建删除
+        DBA("dba");//拥有所有权限
 
-        private final String action;
+        private final String privilege;
 
-        Privilege(String action) {
-            this.action = action;
+        Privilege(String privilege) {
+            this.privilege = privilege;
         }
 
-        public String getAction() {
-            return action;
+        public String getPrivilege() {
+            return privilege;
+        }
+        public boolean isConnect(){
+            if(getPrivilege() == "connect"){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        public boolean isRecourse(){
+            if(getPrivilege() == "resource"){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        public boolean isDBA(){
+            if(getPrivilege()=="dba"){
+                return true;
+            }else{
+                return false;
+            }
         }
     }
 
     private String userName;
     private String password;
-    private UserType userType;
-    private UserStatus userStatus;
+    private String userPrivilege;
     private List<Privilege> userPrivileges;
 
     public UserMetaData(String userName, String password) {
         this.userName = userName;
         this.password = password;
+    }
+
+    public UserMetaData(String userName, String password, String userPrivilege){
+        this.userName = userName;
+        this.password = password;
+        setUserPrivilege(userPrivilege);
     }
 
     public static UserMetaData createAdminUser(String userName, String password) {
@@ -71,28 +83,12 @@ public class UserMetaData implements Serializable{
         this.password = password;
     }
 
-    public UserType getUserType() {
-        return userType;
+    public String getUserPrivilege() {
+        return userPrivilege;
     }
 
-    public void setUserType(UserType userType) {
-        this.userType = userType;
-    }
-
-    public UserStatus getUserStatus() {
-        return userStatus;
-    }
-
-    public void setUserStatus(UserStatus userStatus) {
-        this.userStatus = userStatus;
-    }
-
-    public List<Privilege> getUserPrivileges() {
-        return userPrivileges;
-    }
-
-    public void setUserPrivileges(List<Privilege> userPrivileges) {
-        this.userPrivileges = userPrivileges;
+    public void setUserPrivilege(String userPrivilege) {
+        this.userPrivilege = userPrivilege;
     }
 
     public void addPrivilege(Privilege userPrivilege) {
@@ -112,9 +108,7 @@ public class UserMetaData implements Serializable{
         return "UserMetaData{" +
                 "userName='" + userName + '\'' +
                 ", password='" + password + '\'' +
-                ", userType=" + userType +
-                ", userStatus=" + userStatus +
-                ", userPrivileges=" + userPrivileges +
+                ", userPrivilege=" + userPrivilege +
                 '}';
     }
 
@@ -127,6 +121,6 @@ public class UserMetaData implements Serializable{
             return false;
         }
         UserMetaData that = (UserMetaData) obj;
-        return userName.equals(that.userName) && password.equals(that.password) && userType == that.userType && userStatus == that.userStatus && userPrivileges.equals(that.userPrivileges);
+        return userName.equals(that.userName) && password.equals(that.password) && userPrivilege.equals(that.userPrivilege);
     }
 }

@@ -50,6 +50,7 @@ public class FileUtils {
 
 
     // 以对象形式从文件中读取所有数据
+    //filePath传入当前选择的数据库名称
     public static Object readObjectFromFile(String filePath) {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return ois.readObject();
@@ -123,7 +124,7 @@ public class FileUtils {
     }
 
     public static void initAdminUser(String adminFilePath, String username, String password) {
-        UserMetaData admin = new UserMetaData(username, password);
+        UserMetaData admin = new UserMetaData(username, password,"dba");
         List<UserMetaData> users = new ArrayList<>();
         users.add(admin);
         writeObjectToFile(users, adminFilePath); // 将管理员用户列表写入文件

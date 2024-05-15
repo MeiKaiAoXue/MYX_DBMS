@@ -13,6 +13,7 @@ public class selectDB {
     public JFrame frame;
     public JPanel selectPanel;
     private JButton selected;
+    private JPanel dbList;
     private ButtonGroup group;
 
     public selectDB() {
@@ -21,8 +22,11 @@ public class selectDB {
         for (String dbName : dbNames){
             JRadioButton radioButton = new JRadioButton(dbName);
             radioButton.setActionCommand(dbName);
+            Font newFont = new Font("Serif", Font.BOLD, 18); // 选择字体名称、样式和大小
+            radioButton.setFont(newFont);
             group.add(radioButton);
-            selectPanel.add(radioButton);
+            dbList.setLayout(new BoxLayout(dbList, BoxLayout.Y_AXIS));
+            dbList.add(radioButton);
         }
         selected.addMouseListener(new MouseAdapter() {
             @Override
