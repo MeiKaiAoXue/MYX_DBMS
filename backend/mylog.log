@@ -52,3 +52,261 @@
 信息: Value NULL is not valid for column COLUMN2 of type VARCHAR(20)
 4月 27, 2024 5:52:40 下午 org.myx.fileIo.Logging log
 信息: Constraint check failed for column COLUMN2 with value NULL
+5月 15, 2024 11:47:37 上午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:47:37 上午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:47:37 上午 org.myx.fileIo.Logging log
+信息: alter drop中的对应列不存在
+5月 15, 2024 11:50:23 上午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:50:23 上午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:50:23 上午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 11:50:23 上午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 11:51:50 上午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:51:50 上午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:51:50 上午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 11:51:50 上午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 11:55:17 上午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:55:18 上午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:55:18 上午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 11:55:18 上午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 11:55:43 上午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:55:43 上午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:55:43 上午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 11:55:43 上午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 11:57:43 上午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:57:43 上午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:57:43 上午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 11:57:43 上午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 11:58:49 上午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:58:49 上午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 11:58:49 上午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 11:58:49 上午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 12:05:23 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
+5月 15, 2024 12:09:39 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
+5月 15, 2024 12:09:39 下午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 12:09:39 下午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 12:09:39 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 12:09:39 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 12:15:02 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
+5月 15, 2024 12:15:02 下午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 12:15:02 下午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 12:15:02 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 12:15:02 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 12:17:37 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
+5月 15, 2024 12:17:37 下午 org.myx.fileIo.Logging log
+信息: Value (3) is not valid for column COLUMN1 of type INT
+5月 15, 2024 12:17:37 下午 org.myx.fileIo.Logging log
+信息: Value (1) is not valid for column COLUMN1 of type INT
+5月 15, 2024 12:17:37 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 12:17:37 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 1:56:15 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN2 with value NULL
+5月 15, 2024 1:56:15 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 1:56:15 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 1:56:15 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 1:57:32 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 1:57:33 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 1:57:33 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:01:32 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:01:32 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:01:32 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:03:44 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:03:44 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:03:44 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:07:39 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:07:39 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:07:39 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:10:00 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:10:00 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:10:00 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:10:00 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:10:00 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:17:34 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:17:34 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:17:34 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:17:34 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:17:34 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:20:30 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:20:30 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:20:30 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:20:30 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:20:30 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:22:58 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:22:58 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHAR( (20))
+5月 15, 2024 2:22:58 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:22:58 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:22:58 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:22:58 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:22:58 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:23:46 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:23:46 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHAR (20)
+5月 15, 2024 2:23:46 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:23:46 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:23:46 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:23:46 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:23:46 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:24:43 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:24:43 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHAR (20)
+5月 15, 2024 2:24:43 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:24:43 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:24:43 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:24:43 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:24:43 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:27:28 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:27:28 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:27:29 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:27:29 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:27:29 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:27:29 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:27:29 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:33:35 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:33:35 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:33:35 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:33:35 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:33:35 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:33:35 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1] does not exist
+5月 15, 2024 2:33:35 下午 org.myx.fileIo.Logging log
+信息: DROP CONSTRAINT failed
+5月 15, 2024 2:37:20 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:37:20 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:37:20 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:37:20 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:37:20 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:38:51 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:38:51 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:38:51 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:38:51 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:38:51 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:40:01 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:40:01 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:40:01 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:40:01 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:40:01 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
+5月 15, 2024 2:40:51 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column COLUMN1 with value 1
+5月 15, 2024 2:40:51 下午 org.myx.fileIo.Logging log
+信息: Value 3 is not valid for column COLUMN1 of type VARCHARR (20)
+5月 15, 2024 2:40:51 下午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 15, 2024 2:40:51 下午 org.myx.fileIo.Logging log
+信息: Constraint CK_COLUMN1 already exists
+5月 15, 2024 2:40:51 下午 org.myx.fileIo.Logging log
+信息: ADD CONSTRAINT failed
