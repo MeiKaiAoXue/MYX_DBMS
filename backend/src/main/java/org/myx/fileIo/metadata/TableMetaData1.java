@@ -49,6 +49,15 @@ public class TableMetaData1 implements Serializable {
         this.constraints.add(constraint);
     }
 
+    public void dropConstraint(String dropConstraintName) {
+        for (int i = 0; i < constraints.size(); i++) {
+            if (constraints.get(i).constraintName.equals(dropConstraintName)) {
+                constraints.remove(i);
+                break;
+            }
+        }
+    }
+
     public static class ColumnMetaData implements Serializable{
 //        private static final long serialVersionUID = 1L;
         private String columnName;
