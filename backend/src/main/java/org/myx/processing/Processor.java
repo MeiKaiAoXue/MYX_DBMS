@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public class    Processor {
     private static String currentDBName;
@@ -482,7 +483,7 @@ public class    Processor {
      * 处理select Table语句
      * @param Select
      */
-    private  static  void  processSelect(Select statement) throws  IOException {
+    public static  List<String>  processSelect(Select statement) throws  IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
         PlainSelect plainSelect = statement.getPlainSelect();
 //        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
@@ -502,7 +503,7 @@ public class    Processor {
         if(tableName==null){
             Logging.log("Table " + tableName + " does not exist");
             Logging.log("Please create the table before inserting data");
-            return;
+            return null;
         }
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
         //获取where条件
@@ -510,29 +511,45 @@ public class    Processor {
 
         //获取表中的所有列名
         TableMetaData1 table = db.getTable(tableName.toString());
+        List<String> output = new ArrayList<>();
         List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
-
         List<Integer> indexList = new ArrayList<>();//指定输出的列名下标
         //正则处理where
         String beforeOperator = null;
         String operator = "";
         String afterOperator = null;
+        String firstElement ;
+        String rowElement;
         if(where==null){
             //*查询
+            List<Integer> outputColumnIndexes = new ArrayList<>();
             if(selectItemStrings.get(0).equals("*")){
                 for (int i=0;i<table_columns.size();i++) {
                     System.out.print(table_columns.get(i).getColumnName());
-                    System.out.print("  ");
+                    System.out.print(" ");
+                    if(output.isEmpty()) {
+                        output.add(table_columns.get(i).getColumnName() + " ");
+                    }else{
+                        firstElement = output.get(0);
+                        firstElement+=table_columns.get(i).getColumnName()+" ";
+                        output.set(0,firstElement);
+                    }
                 }
                 System.out.println();
                 for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
                     for (int colIndex=0;colIndex<all_values.get(rowIndex).size();colIndex++){
                         System.out.print(all_values.get(rowIndex).get(colIndex));
                         System.out.print("  ");
+                        if(colIndex==0) {
+                            output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                        }else{
+                            rowElement = output.get(rowIndex+1);
+                            rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                            output.set(rowIndex+1,rowElement);
+                        }
                     }
                     System.out.println();
                 }
-
             }else{
                 //指定列输出
                 for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
@@ -545,12 +562,13 @@ public class    Processor {
                     //TODO:指明不存在的列名
                     System.out.println("有查询列不存在于表中");
                     Logging.log("有查询列不存在于表中");
-                    return;
+                    return null;
                 }
                 //输出
                 for (int x=0;x<selectItemStrings.size();x++){
                     System.out.print(selectItemStrings.get(x));
                     System.out.print("    ");
+                    output.add(selectItemStrings.get(x)+" ");
                 }
                 System.out.println("");
                 for(int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -560,10 +578,17 @@ public class    Processor {
                                 //TODO:控制输出格式，使之对齐
                                 System.out.print(all_values.get(rowIndex).get(colIndex));
                                 System.out.print("    ");
+                                if(colIndex==0) {
+                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                }else{
+                                    rowElement = output.get(rowIndex+1);
+                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    output.set(rowIndex+1,rowElement);
+                                }
                             }
                         }
                     }
-                    System.out.println("");
+                    System.out.println("\n");
                 }
             }
         }else {
@@ -604,7 +629,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
                         String value = all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
@@ -639,7 +664,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
                     //where部分处理
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -653,7 +678,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
                         String value = all_values.get(rowIndex).get(targetColIndex).toString().toUpperCase();
@@ -690,7 +715,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -711,8 +736,10 @@ public class    Processor {
                         for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+ " ");
                         }
                         System.out.print("\n");
+                        output.add("\n");
                     }
                 }
                 else{
@@ -728,7 +755,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -742,7 +769,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -756,13 +783,16 @@ public class    Processor {
                     for (int i=0;i<indexList.size();i++) {
                         System.out.print(table_columns.get(indexList.get(i)).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(indexList.get(i)).getColumnName()+" ");
                     }
                     System.out.print("\n");
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
 
@@ -781,7 +811,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -798,14 +828,18 @@ public class    Processor {
                     for (int i=0;i<table_columns.size();i++) {
                         System.out.print(table_columns.get(i).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(i).getColumnName() + " ");
                     }
+                    output.add("\n");
                     System.out.print("\n");
 
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+ " ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
                 }
@@ -822,7 +856,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -836,7 +870,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -859,7 +893,9 @@ public class    Processor {
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
 
@@ -877,7 +913,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -915,7 +951,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -929,7 +965,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -943,7 +979,10 @@ public class    Processor {
                     for (int i=0;i<indexList.size();i++) {
                         System.out.print(table_columns.get(indexList.get(i)).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(indexList.get(i)).getColumnName()+ " ");
+
                     }
+                    output.add("\n");
                     System.out.print("\n");
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
@@ -968,7 +1007,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -985,14 +1024,18 @@ public class    Processor {
                     for (int i=0;i<table_columns.size();i++) {
                         System.out.print(table_columns.get(i).getColumnName());
                         System.out.print("  ");
+                        output.add(table_columns.get(i).getColumnName()+" ");
                     }
+                    output.add("\n");
                     System.out.print("\n");
 
                     for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                         for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+"");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
                 }
@@ -1009,7 +1052,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("有查询列不存在于表中");
                         Logging.log("有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     List<Integer> outPutRowNum = new ArrayList<>();
@@ -1023,7 +1066,7 @@ public class    Processor {
                         //TODO:指明不存在的列名
                         System.out.println("where后有查询列不存在于表中");
                         Logging.log("where后有查询列不存在于表中");
-                        return;
+                        return null;
                     }
 
                     for (int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -1046,7 +1089,9 @@ public class    Processor {
                         for (int colIndex=0;colIndex<indexList.size();colIndex++){
                             System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                             System.out.print("  ");
+                            output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ");
                         }
+                        output.add("\n");
                         System.out.print("\n");
                     }
 
@@ -1054,7 +1099,7 @@ public class    Processor {
             }
         }
 
-
+        return output;
     }
 
     private static void processInsert(Insert statement) throws IOException {
@@ -1092,6 +1137,7 @@ public class    Processor {
                     }
 
                     // 判断每个字段的值是否匹配
+
                     for (int i = 0; i < row.size(); i++) {
                         String columnName = table_columns.get(i).getColumnName();
                         String columnType = table.getColumnType(columnName);
