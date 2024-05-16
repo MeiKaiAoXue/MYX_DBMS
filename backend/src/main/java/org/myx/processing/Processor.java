@@ -27,10 +27,10 @@ import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
 import org.myx.fileIo.metadata.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
@@ -73,6 +73,29 @@ public class    Processor {
                 throw new IllegalArgumentException("Unsupported SQL statement: " + sql);
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 批处理SQL文件
+     */
+    public static void batchProcess(String filePath) {
+        try (Scanner scanner = new Scanner(new File(filePath))) {
+            scanner.useDelimiter("\\Z"); // 读取整个文件
+            String content = scanner.next();
+
+            // 根据分号来分割文件内容，得到一个包含所有SQL语句的数组
+            String[] sqlStatements = content.split(";");
+
+            System.out.println("所有SQL如下：");
+            // 遍历数组，对每个SQL语句进行处理
+            for (String sqlStatement : sqlStatements) {
+                sqlStatement = sqlStatement + ";";
+                System.out.println(sqlStatement);
+                process(sqlStatement);
+            }
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
