@@ -124,7 +124,7 @@ public class FileUtils {
     }
 
     public static void initAdminUser(String adminFilePath, String username, String password) {
-        UserMetaData admin = new UserMetaData(username, password,"dba");
+        UserMetaData admin = new UserMetaData(username, password, UserMetaData.UserType.ADMIN);
         List<UserMetaData> users = new ArrayList<>();
         users.add(admin);
         writeObjectToFile(users, adminFilePath); // 将管理员用户列表写入文件
@@ -163,4 +163,20 @@ public class FileUtils {
     }
 
 
+    public static void deleteFile(String tableFilePath) {
+        // 查找当前文件是否存在
+        // 如果存在则按照传入的文件路径删除该文件
+        // 若不存在则打印文件不存在
+        File file = new File(tableFilePath);
+        if (file.exists()) {
+            if (file.delete()) {
+                System.out.println("文件已删除：" + tableFilePath);
+            } else {
+                System.out.println("文件删除失败：" + tableFilePath);
+            }
+        } else {
+            System.out.println("文件不存在：" + tableFilePath);
+        }
+
+    }
 }

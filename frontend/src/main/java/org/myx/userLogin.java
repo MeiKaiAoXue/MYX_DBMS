@@ -18,7 +18,10 @@ public class userLogin {
     private JTextField countFiled;
     private JTextField passwordField;
     private JButton loginButton;
-    public userLogin(){
+    private String dbName;
+
+    public userLogin(String dbName) {  // 接受数据库名作为参数
+        this.dbName = dbName;
 
         loginButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -39,7 +42,7 @@ public class userLogin {
             private UserMetaData authenticate(String username, String password) throws IOException, ClassCastException, ClassNotFoundException {
                 try {
                     // 尝试从文件中读取对象
-                    Object result = FileUtils.readObjectFromFile("./users.txt");
+                    Object result = FileUtils.readObjectFromFile("./"+dbName+"/users.txt");
 
                     // 检查返回的对象是否为List<UserMetaData>类型
                     if (result instanceof List<?>) {
@@ -50,7 +53,7 @@ public class userLogin {
                             // 遍历用户列表，检查每个用户
                             for (UserMetaData user : users) {
                                 if (user.getUserName().equals(username) && user.getPassword().equals(password)) {
-                                    UserMetaData currentUser=user;
+                                    System.out.println(user);
                                     return user;  // 找到匹配的用户，验证成功
                                 }
                             }
@@ -73,6 +76,5 @@ public class userLogin {
             }
         });
     }
-
 
 }

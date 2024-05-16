@@ -45,7 +45,12 @@
         <dependency>
             <groupId>com.jgoodies</groupId>
             <artifactId>forms</artifactId>
-            <version>1.9.0</version> <!-- 检查是否有更新的版本 -->
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>1.6</version>
         </dependency>
 
     </dependencies>

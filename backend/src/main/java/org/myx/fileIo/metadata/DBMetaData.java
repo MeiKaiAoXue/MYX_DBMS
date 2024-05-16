@@ -12,6 +12,8 @@ public class DBMetaData implements Serializable {
     private String dbName;
     private List<TableMetaData1> tables;
 
+    private List<View> views;
+
     /**
      *构造函数，初始化数据库名称和表列表
      * @param dbName 数据库名称
@@ -19,6 +21,7 @@ public class DBMetaData implements Serializable {
     public DBMetaData(String dbName) {
         this.dbName = dbName;
         this.tables = new ArrayList<>();
+        this.views=new ArrayList<>();
     }
 //获取数据库名称
     public String getDbName() {
@@ -61,9 +64,24 @@ public class DBMetaData implements Serializable {
         tables.remove(table);
     }
 
+    public List<View> getViews(){return  views;};
+   public void addView(View view){views.add(view);};
+
+
+    public  void removeView(View view){views.remove(view);};
+
+    public  View getView(String viewName){
+        for (View view:views){
+            if(view.getViewName().equals(viewName)){
+                return  view;
+            }
+        }
+        return  null;
+    }
     public String toString() {
         return "DBMetaData{" +
                 "tables:" + tables +
+                "views:" + views +
                 '}';
     }
 
@@ -77,6 +95,12 @@ public class DBMetaData implements Serializable {
     }
 
 
-
-
+    public void dropTable(String tableName) {
+        for (TableMetaData1 table : tables) {
+            if (table.getTableName().equals(tableName)) {
+                tables.remove(table);
+                break;
+            }
+        }
+    }
 }
