@@ -91,7 +91,7 @@ public class    Processor {
      * @param CreateView
      */
     private static void processCreateView(CreateView statement) {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+"/db.txt");
         String viewName=statement.getView().getName();
         System.out.println(viewName);
         System.out.println(statement);
@@ -133,7 +133,7 @@ public class    Processor {
 //        }
         View view=new View(viewName,tableName,columnsName);
         db.addView(view);
-        FileUtils.writeObjectToFile(db, "./db.txt");
+        FileUtils.writeObjectToFile(db, currentDBName+"/db.txt");
         //System.out.println(db.toString());
     }
 
@@ -325,7 +325,7 @@ public class    Processor {
                 table.dropConstraint(drop_constraintName);
                 System.out.println("删除约束成功");
                 // 修改db.txt
-                FileUtils.writeObjectToFile(db, "./db.txt");
+                FileUtils.writeObjectToFile(db, currentDBName+"/db.txt");
             } else if (alterStatment.startsWith("[ADD CONSTRAINT"))
             {
                 //            String sql2 = "ALTER TABLE employees\n" +
@@ -398,7 +398,7 @@ public class    Processor {
                     table.addConstraint(constraintName, constraintType, constraintCondition);
                     System.out.println("添加约束成功");
                     // 修改db.txt
-                    FileUtils.writeObjectToFile(db, "./db.txt");
+                    FileUtils.writeObjectToFile(db, currentDBName+"/db.txt");
                 }
 
             } else if (alterStatment.startsWith("[MODIFY COLUMN"))
@@ -447,7 +447,7 @@ public class    Processor {
                 table_columns.get(columnIndex).setColumnType(newDataType);
                 System.out.println("修改字段类型成功");
                 // 修改db.txt
-                FileUtils.writeObjectToFile(db, "./db.txt");
+                FileUtils.writeObjectToFile(db, currentDBName+"/db.txt");
             }
 
 
@@ -712,7 +712,7 @@ public class    Processor {
      * 处理select Table语句
      * @param Select
      */
-    private static  List<String>  processSelect(Select statement) throws  IOException {
+    public static  List<String>  processSelect(Select statement) throws  IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
         System.out.println("处理select Table语句");
         PlainSelect plainSelect = statement.getPlainSelect();
@@ -759,7 +759,7 @@ public class    Processor {
         }
         List<String> output = new ArrayList<>();
         if(inTables){
-            List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+            List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile(currentDBName+"/" + tableName + ".txt");
             //获取where条件
             Expression where=plainSelect.getWhere();
 
@@ -846,6 +846,7 @@ public class    Processor {
                         }
                         System.out.println("");
                     }
+                    System.out.println("\n");
                 }
             }
             else {
@@ -2293,7 +2294,7 @@ public class    Processor {
                 }
             }
         }
-        return null;
+        return output;
     }
 
     /**

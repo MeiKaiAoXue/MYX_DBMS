@@ -50,3 +50,19 @@
 信息: Table S already exists
 5月 16, 2024 3:22:03 下午 org.myx.fileIo.Logging log
 信息: Error processing SQL: create table 1 (sno varchar(3));
+5月 16, 2024 5:57:38 下午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 16, 2024 6:12:05 下午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 16, 2024 6:16:38 下午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 16, 2024 6:25:43 下午 org.myx.fileIo.Logging log
+信息: Table AA does not exist
+5月 16, 2024 6:25:43 下午 org.myx.fileIo.Logging log
+信息: Please create the table before inserting data
+5月 16, 2024 6:25:46 下午 org.myx.fileIo.Logging log
+信息: Table AA does not exist
+5月 16, 2024 6:25:46 下午 org.myx.fileIo.Logging log
+信息: Please create the table before inserting data
+5月 16, 2024 6:26:10 下午 org.myx.fileIo.Logging log
+信息: Table AA already exists

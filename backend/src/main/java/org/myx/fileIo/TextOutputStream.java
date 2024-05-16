@@ -2,6 +2,8 @@ package org.myx.fileIo;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import javax.swing.*;
 
 public class TextOutputStream extends OutputStream {
@@ -26,4 +28,3 @@ public class TextOutputStream extends OutputStream {
         }
     }
 }
-

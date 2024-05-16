@@ -18,6 +18,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -52,8 +54,18 @@ public class Form {
             public void mousePressed(MouseEvent e) {
 
 //重定向 System.out 输出到 JTextArea
+//                TextOutputStream taOutputStream = new TextOutputStream(resultArea);
+//                PrintStream ps = new PrintStream(taOutputStream);
+//                System.setOut(ps);  // 将标准输出重定向到 PrintStream
+//                System.out.println("Executing SQL: " + SQLtextArea.getText());
+                JTextArea resultArea = new JTextArea();
                 TextOutputStream taOutputStream = new TextOutputStream(resultArea);
-                PrintStream ps = new PrintStream(taOutputStream);
+                PrintStream ps = null;
+                try {
+                    ps = new PrintStream(taOutputStream, true, StandardCharsets.UTF_8.name());
+                } catch (UnsupportedEncodingException ex) {
+                    throw new RuntimeException(ex);
+                }
                 System.setOut(ps);  // 将标准输出重定向到 PrintStream
                 System.out.println("Executing SQL: " + SQLtextArea.getText());
                 String sql = SQLtextArea.getText();

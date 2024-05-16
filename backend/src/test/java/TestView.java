@@ -7,7 +7,7 @@ import java.util.List;
 
 public class TestView {
     public static void main(String[] args){
-        FileUtils.initDB("./db.txt");
+        FileUtils.initDB("./view");
         String create_sql3 = "CREATE TABLE AA (column1 INT CHECK (column1 > 0), column2 VARCHAR(20) NOT NULL UNIQUE);";
         Processor.process(create_sql3);
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("db.txt");
