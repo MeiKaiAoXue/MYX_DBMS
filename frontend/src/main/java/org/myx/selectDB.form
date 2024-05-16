@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.myx.selectDB">
+  <grid id="27dc6" binding="selectPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="500" height="400"/>
+    </constraints>
+    <properties>
+      <preferredSize width="400" height="300"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <component id="9f6a4" class="javax.swing.JLabel">
+        <constraints border-constraint="North"/>
+        <properties>
+          <autoscrolls value="false"/>
+          <font size="28" style="1"/>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
+          <opaque value="false"/>
+          <preferredSize width="233" height="80"/>
+          <text value="选择数据库"/>
+        </properties>
+      </component>
+      <component id="4e745" class="javax.swing.JLabel">
+        <constraints border-constraint="West"/>
+        <properties>
+          <font size="22"/>
+          <horizontalAlignment value="0"/>
+          <preferredSize width="120" height="200"/>
+          <requestFocusEnabled value="true"/>
+          <text value="数据库列表"/>
+        </properties>
+      </component>
+      <component id="a2270" class="javax.swing.JButton" binding="selected">
+        <constraints border-constraint="South"/>
+        <properties>
+          <font size="20" style="1"/>
+          <text value="确认"/>
+        </properties>
+      </component>
+      <grid id="51dc6" binding="dbList" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints border-constraint="Center"/>
+        <properties>
+          <preferredSize width="100" height="24"/>
+        </properties>
+        <border type="none"/>
+        <children/>
+      </grid>
+    </children>
+  </grid>
+</form>

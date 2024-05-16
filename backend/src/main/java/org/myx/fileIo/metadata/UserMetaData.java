@@ -1,49 +1,70 @@
 package org.myx.fileIo.metadata;
 
+import java.io.Serializable;
 import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
 
-public class UserMetaData {
-    public enum UserType {
-        ADMIN,
-        USER
-    }
-    public enum UserStatus {
-        ACTIVE,
-        INACTIVE
+public class UserMetaData implements Serializable{
+    private static final long serialVersionUID = 6746102291468956672L;
+    public List<Privilege> getPrivileges() {
+        return userPrivileges;
     }
 
-    public enum privilege {
-        READ("read"),
-        INSERT("insert"),
-        UPDATE("update"),
-        DELETE("delete");
 
-        private final String action;
+    public enum Privilege {
+        CONNECT("connect"),//只能select查看表
+        RESOURCE("resource"),//可以创建删除
+        DBA("dba");//拥有所有权限
 
-        privilege(String action){
-            this.action = action;
+        private final String privilege;
+
+        Privilege(String privilege) {
+            this.privilege = privilege;
         }
 
-        public String getAction(){
-            return action;
+        public String getPrivilege() {
+            return privilege;
+        }
+        public boolean isConnect(){
+            if(getPrivilege() == "connect"){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        public boolean isRecourse(){
+            if(getPrivilege() == "resource"){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        public boolean isDBA(){
+            if(getPrivilege()=="dba"){
+                return true;
+            }else{
+                return false;
+            }
         }
     }
 
     private String userName;
     private String password;
-    private UserType userType;
-    private UserStatus userStatus;
-    private List<privilege> userPrivileges;
-    private Set<privilege> privileges;
+    private String userPrivilege;
+    private List<Privilege> userPrivileges;
 
-    public UserMetaData(String userName, String password, UserType userType, UserStatus userStatus, List<privilege> userPrivileges) {
+    public UserMetaData(String userName, String password) {
         this.userName = userName;
         this.password = password;
-        this.userType = userType;
-        this.userStatus = userStatus;
-        this.privileges = new HashSet<>();
+    }
+
+    public UserMetaData(String userName, String password, String userPrivilege){
+        this.userName = userName;
+        this.password = password;
+        setUserPrivilege(userPrivilege);
+    }
+
+    public static UserMetaData createAdminUser(String userName, String password) {
+        return new UserMetaData(userName, password);
     }
 
     public String getUserName() {
@@ -62,51 +83,36 @@ public class UserMetaData {
         this.password = password;
     }
 
-    public UserType getUserType() {
-        return userType;
+    public String getUserPrivilege() {
+        return userPrivilege;
     }
 
-    public void setUserType(UserType userType) {
-        this.userType = userType;
+    public void setUserPrivilege(String userPrivilege) {
+        this.userPrivilege = userPrivilege;
     }
 
-    public UserStatus getUserStatus() {
-        return userStatus;
-    }
-
-    public void setUserStatus(UserStatus userStatus) {
-        this.userStatus = userStatus;
-    }
-
-    public List<privilege> getUserPrivileges() {
-        return userPrivileges;
-    }
-
-    public void setUserPrivileges(List<privilege> userPrivileges) {
-        this.userPrivileges = userPrivileges;
-    }
-
-    public void addPrivilege(privilege userPrivilege) {
+    public void addPrivilege(Privilege userPrivilege) {
         userPrivileges.add(userPrivilege);
     }
 
-    public void removePrivilege(privilege userPrivilege) {
+    public void removePrivilege(Privilege userPrivilege) {
         userPrivileges.remove(userPrivilege);
     }
 
-    public boolean hasPrivilege(privilege userPrivilege) {
-        return privileges.contains(userPrivilege);
+    public boolean hasPrivilege(Privilege userPrivilege) {
+        return userPrivileges.contains(userPrivilege);
     }
+
+    @Override
     public String toString() {
         return "UserMetaData{" +
                 "userName='" + userName + '\'' +
                 ", password='" + password + '\'' +
-                ", userType=" + userType +
-                ", userStatus=" + userStatus +
-                ", userPrivileges=" + userPrivileges +
+                ", userPrivilege=" + userPrivilege +
                 '}';
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -115,6 +121,6 @@ public class UserMetaData {
             return false;
         }
         UserMetaData that = (UserMetaData) obj;
-        return userName.equals(that.userName) && password.equals(that.password) && userType == that.userType && userStatus == that.userStatus && userPrivileges.equals(that.userPrivileges);
+        return userName.equals(that.userName) && password.equals(that.password) && userPrivilege.equals(that.userPrivilege);
     }
 }
