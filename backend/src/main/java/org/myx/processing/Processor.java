@@ -50,7 +50,7 @@ public class    Processor {
             if (statement instanceof CreateTable) {
                 processCreate((CreateTable) statement);
             } else if (statement instanceof Drop) {
-//                processDrop((Drop) statement);
+                processDrop((Drop) statement);
             } else if (statement instanceof Alter) {
                 processAlter((Alter) statement);
             } else if (statement instanceof Select) {
@@ -75,6 +75,26 @@ public class    Processor {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 处理 Drop Table语句
+     * @param Drop
+     */
+    private static void processDrop(Drop statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
+        String tableName = statement.getName().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        db.dropTable(tableName);
+        // 修改数据库目录
+        FileUtils.writeObjectToFile(db, currentDBName+ "/db.txt");
+        // 删除表的所有数据
+        FileUtils.deleteFile(currentDBName+ "/" + tableName + ".txt");
     }
 
     private  static void processGrant(Grant statement) throws IOException{
