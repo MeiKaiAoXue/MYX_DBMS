@@ -95,6 +95,7 @@ public class    Processor {
         String viewName=statement.getView().getName();
         System.out.println(viewName);
         System.out.println(statement);
+        System.out.println(viewName+"进入创建语句");
         int fromTableNameStart=statement.toString().toUpperCase().indexOf("FROM")+5;
         int fromTableNameEnd=statement.toString().indexOf(" ",fromTableNameStart);
         if(fromTableNameEnd==-1)fromTableNameEnd=statement.toString().length();
@@ -134,7 +135,7 @@ public class    Processor {
         View view=new View(viewName,tableName,columnsName);
         db.addView(view);
         FileUtils.writeObjectToFile(db, currentDBName+"/db.txt");
-        //System.out.println(db.toString());
+        System.out.println(viewName+"成功创建");
     }
 
     /**
@@ -806,7 +807,8 @@ public class    Processor {
                         System.out.println();
                     }
 
-                }else{
+                }
+                else{
                     //指定列输出
                     for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                         if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
@@ -825,6 +827,13 @@ public class    Processor {
                         System.out.print(selectItemStrings.get(x));
                         System.out.print("    ");
                         output.add(selectItemStrings.get(x)+" ");
+                        if(output.isEmpty()) {
+                            output.add(table_columns.get(x).getColumnName() + " ");
+                        }else{
+                            firstElement = output.get(0);
+                            firstElement+=table_columns.get(x).getColumnName()+" ";
+                            output.set(0,firstElement);
+                        }
                     }
                     System.out.println("");
                     for(int rowIndex=0;rowIndex<all_values.size();rowIndex++){
@@ -977,10 +986,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(rowIndex).get(indexList.get(colIndex)) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(rowIndex).get(indexList.get(colIndex))+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -988,7 +997,8 @@ public class    Processor {
                         }
 
                     }
-                } else if (operator.equals(">")) {
+                }
+                else if (operator.equals(">")) {
                     if(selectItemStrings.get(0).equals("*")){
                         List<Integer> outPutRowNum = new ArrayList<>();
                         int targetColIndex;
@@ -1027,6 +1037,7 @@ public class    Processor {
 
                         for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                             for (int colIndex=0;colIndex<all_values.get(outPutRowNum.get(rowIndex)).size();colIndex++){
+                                String n=all_values.get(outPutRowNum.get(rowIndex)).get(colIndex).toString();
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                                 System.out.print("  ");
                                 if(colIndex==0) {
@@ -1042,11 +1053,10 @@ public class    Processor {
                     }
                     else{
                         //指定列输出
-                        for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                             if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
                                 indexList.add(x);
                                 j++;
-                                index++;
                             }
                         }
                         if(indexList.size()!=selectItemStrings.size()){
@@ -1082,23 +1092,24 @@ public class    Processor {
                             System.out.print(table_columns.get(indexList.get(i)).getColumnName());
                             System.out.print("  ");
                             if(output.isEmpty()) {
-                                output.add(table_columns.get(i).getColumnName() + " ");
+                                output.add(table_columns.get(indexList.get(i)).getColumnName() + " ");
                             }else{
                                 firstElement = output.get(0);
-                                firstElement+=table_columns.get(i).getColumnName()+" ";
+                                firstElement+=table_columns.get(indexList.get(i)).getColumnName()+" ";
                                 output.set(0,firstElement);
                             }
                         }
                         System.out.print("\n");
                         for (int rowIndex=0;rowIndex<outPutRowNum.size();rowIndex++){
                             for (int colIndex=0;colIndex<indexList.size();colIndex++){
+                                String b=all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)).toString();
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(rowIndex).get(indexList.get(indexList.get(colIndex))) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(rowIndex).get(indexList.get(indexList.get(colIndex)) )+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1164,11 +1175,10 @@ public class    Processor {
                     }
                     else{
                         //指定列输出
-                        for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                             if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
                                 indexList.add(x);
                                 j++;
-                                index++;
                             }
                         }
                         if(indexList.size()!=selectItemStrings.size()){
@@ -1220,10 +1230,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(rowIndex).get(indexList.get(colIndex)) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(rowIndex).get(indexList.get(colIndex))+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1285,11 +1295,10 @@ public class    Processor {
                     }
                     else{
                         //指定列输出
-                        for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                             if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
                                 indexList.add(x);
                                 j++;
-                                index++;
                             }
                         }
                         if(indexList.size()!=selectItemStrings.size()){
@@ -1408,11 +1417,10 @@ public class    Processor {
                     }
                     else{
                         //指定列输出
-                        for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                             if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
                                 indexList.add(x);
                                 j++;
-                                index++;
                             }
                         }
                         if(indexList.size()!=selectItemStrings.size()){
@@ -1464,10 +1472,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(rowIndex).get(indexList.get(colIndex)) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(rowIndex).get(indexList.get(colIndex))+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1513,7 +1521,7 @@ public class    Processor {
             TableMetaData1 f_table = db.getTable(fromTableName);
             List<TableMetaData1.ColumnMetaData> table_columns = f_table.getColumns();
             //获取from表的对应值
-            List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + fromTableName + ".txt");
+            List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile(currentDBName+"/" + fromTableName + ".txt");
             //获取where条件
             Expression where=plainSelect.getWhere();
 
@@ -1528,8 +1536,8 @@ public class    Processor {
                 //*查询
                 if(columnsName_in_Select.get(0).equals("*")){
                     //找出view中存储的columns对应下标
-                    for (int i=0,j=0;j<columns_in_view.size();j++){
-                        if(columns_in_view.get(i).toUpperCase() .equals(table_columns.get(i).getColumnName().toUpperCase())){
+                    for (int i=0,j=0;i<columns_in_view.size()&&j<table_columns.size();j++){
+                        if(columns_in_view.get(i).toUpperCase() .equals(table_columns.get(j).getColumnName().toUpperCase())){
                             indexList.add(j);//将基表对应的列index加入list中
                             i++;
                         }
@@ -1574,7 +1582,7 @@ public class    Processor {
                 else{
                     //不为*时
                     //指定列输出
-                    for (int i=0,j=0;j<table_columns.size();j++){
+                    for (int i=0,j=0;j<table_columns.size()&&i<columnsName_in_Select.size();j++){
                         if(columnsName_in_Select.get(i).toUpperCase() .equals(table_columns.get(j).getColumnName().toUpperCase())){
                             indexList.add(j);//将基表对应的列index加入list中
                             i++;
@@ -1883,10 +1891,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1950,10 +1958,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1962,11 +1970,10 @@ public class    Processor {
                     }
                     else{
                         //指定列输出
-                        for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                             if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
                                 indexList.add(x);
                                 j++;
-                                index++;
                             }
                         }
                         if(indexList.size()!=selectItemStrings.size()){
@@ -2092,11 +2099,10 @@ public class    Processor {
                     }
                     else{
                         //指定列输出
-                        for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                             if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
                                 indexList.add(x);
                                 j++;
-                                index++;
                             }
                         }
                         if(indexList.size()!=selectItemStrings.size()){
@@ -2223,11 +2229,10 @@ public class    Processor {
                     }
                     else{
                         //指定列输出
-                        for (int x=0,j=0,index=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
+                        for (int x=0,j=0;x<table_columns.size()&&j<selectItemStrings.size();x++){
                             if(table_columns.get(x).getColumnName().equals(selectItemStrings.get(j))){
                                 indexList.add(x);
                                 j++;
-                                index++;
                             }
                         }
                         if(indexList.size()!=selectItemStrings.size()){
