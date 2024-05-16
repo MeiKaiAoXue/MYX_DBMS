@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
 public class    Processor {
     private static String currentDBName;
     public static void setCurrentDBName(String dbName){
-        currentDBName = "./" + dbName + "/db.txt";
+        currentDBName = "./" + dbName ;
     }
 
     public static void process(String sql) {
@@ -61,7 +61,7 @@ public class    Processor {
             } else if (statement instanceof Delete) {
 //                processDelete((Delete) statement);
             } else if (statement instanceof  Grant) {
-//                processGrant((Grant) statement);
+                processGrant((Grant) statement);
             } else if (statement instanceof Delete){
                 processDelete((Delete) statement);
             } else {
@@ -72,16 +72,25 @@ public class    Processor {
             e.printStackTrace();
         }
     }
+
+    private  static void processGrant(Grant statement) throws IOException{
+        Object user = FileUtils.readObjectFromFile(currentDBName+ "/users.txt");
+        System.out.println(user);
+        List<String> userGranted = statement.getUsers();
+        System.out.println("Granted users: " + userGranted);
+    }
+
+
     /**
      * 处理 Alter Table语句
      *
      * @param Alter
      */
     private static void processAlter(Alter statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
-        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile(currentDBName+ "/" + tableName + ".txt");
         List<TableMetaData1> tables=db.getTables();
         if (table == null) {
             Logging.log("Table " + tableName + " does not exist");
@@ -126,7 +135,7 @@ public class    Processor {
             //删除table实例中的column
             table.dropColumn(table_columns);
             //修改db.txt
-            FileUtils.writeObjectToFile(db, "./db.txt");
+            FileUtils.writeObjectToFile(db, currentDBName+"./db.txt");
 
             if(all_values.size()>0){
                 for(int i=all_values.size()-1;i>=0;i--){
@@ -220,7 +229,7 @@ public class    Processor {
 
 
             //写入db文件
-            FileUtils.writeObjectToFile(db, "./db.txt");
+            FileUtils.writeObjectToFile(db, currentDBName+"./db.txt");
         } else {
             // 其他情况
             System.out.println("The statement does not start with DROP or ADD");
@@ -234,7 +243,7 @@ public class    Processor {
      * @param Delete
      */
     private static void processDelete(Delete statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+"./db.txt");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
@@ -376,7 +385,7 @@ public class    Processor {
      * @param Update
      */
     private static void processUpdate(Update statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile("./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+"./db.txt");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
@@ -484,7 +493,7 @@ public class    Processor {
      * @param Select
      */
     public static  List<String>  processSelect(Select statement) throws  IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
         PlainSelect plainSelect = statement.getPlainSelect();
 //        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
 //        System.out.println("【查询字段】：" + plainSelect.getSelectItems());
@@ -1114,11 +1123,11 @@ public class    Processor {
     }
 
     private static void processInsert(Insert statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
 
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
-        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile(currentDBName+"/" + tableName + ".txt");
 
         if (table == null) {
             Logging.log("Table " + tableName + " does not exist");
@@ -1216,7 +1225,7 @@ public class    Processor {
 
                 if (row.size() == table_columns.size()) {
                     all_values.add(row);
-                    FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+                    FileUtils.writeObjectToFile(all_values, currentDBName+ "/" + tableName + ".txt");
                     System.out.println("Inserted row: " + row);
                 } else {
                     Logging.log("Row size does not match column size");
@@ -1461,7 +1470,7 @@ public class    Processor {
      * @param createTable
      */
     private static void processCreate(CreateTable createTable) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName);
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
 
         String tableName = createTable.getTable().getName();
         TableMetaData1 checkTable = db.getTable(tableName);
@@ -1523,11 +1532,11 @@ public class    Processor {
 
         });
         db.addTable(newTableMetaData);
-        FileUtils.writeObjectToFile(db, currentDBName);
+        FileUtils.writeObjectToFile(db, currentDBName+ "/db.txt");
 
         Table table = new Table(tableName, newTableMetaData.getColumns());
         // 表文件中只存表对象中的values，不存表名和字段
-        FileUtils.writeObjectToFile(table.getValues(), "./" + tableName + ".txt");
+        FileUtils.writeObjectToFile(table.getValues(), currentDBName + "/" + tableName + ".txt");
     }
 
 //    private void processDrop(Drop drop) {

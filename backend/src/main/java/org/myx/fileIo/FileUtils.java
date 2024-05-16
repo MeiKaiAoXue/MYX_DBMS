@@ -124,7 +124,7 @@ public class FileUtils {
     }
 
     public static void initAdminUser(String adminFilePath, String username, String password) {
-        UserMetaData admin = new UserMetaData(username, password,"dba");
+        UserMetaData admin = new UserMetaData(username, password, UserMetaData.UserType.ADMIN);
         List<UserMetaData> users = new ArrayList<>();
         users.add(admin);
         writeObjectToFile(users, adminFilePath); // 将管理员用户列表写入文件

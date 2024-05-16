@@ -46,3 +46,7 @@
 信息: Value 12 is not valid for column SNO of type VARCHAR2
 5月 14, 2024 9:10:49 下午 org.myx.fileIo.Logging log
 信息: Value 12 is not valid for column SNO of type VARCHAR2
+5月 16, 2024 3:20:52 下午 org.myx.fileIo.Logging log
+信息: Table S already exists
+5月 16, 2024 3:22:03 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create table 1 (sno varchar(3));

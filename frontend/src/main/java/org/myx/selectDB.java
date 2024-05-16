@@ -34,13 +34,13 @@ public class selectDB {
                 String selectedDB = group.getSelection().getActionCommand();
                 System.out.println("选中了数据库:" + selectedDB);
                 Processor.setCurrentDBName(selectedDB);
-                openLogin();
+                openLogin(selectedDB);
                 frame.dispose();
             }
         });
     }
-    private void openLogin() {
-        userLogin userLogin = new userLogin();
+    private void openLogin(String selectedDB) {
+        userLogin userLogin = new userLogin(selectedDB);
         userLogin.frame = new JFrame("userLogin");
         userLogin.frame.setContentPane(userLogin.userLoginPanel);
         userLogin.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

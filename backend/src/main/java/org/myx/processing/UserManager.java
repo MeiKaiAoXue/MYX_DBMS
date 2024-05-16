@@ -22,7 +22,7 @@ public class UserManager {
 
     // 添加用户
     public void addUser(String username, String password) {
-        UserMetaData newUser = new UserMetaData(username, password);
+        UserMetaData newUser = new UserMetaData(username, password, UserMetaData.UserType.USER);
         users.add(newUser);
         System.out.println("User added: " + newUser.getUserName());
     }

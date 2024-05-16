@@ -41,7 +41,8 @@ public class Form {
     public Form(UserMetaData user){
         this.user = user;
         userLabel.setText("当前用户：" + user.getUserName());
-        String privilege = user.getUserPrivilege();
+        UserMetaData.UserType privilege = user.getUserType();
+        System.out.println(privilege.toString());
         SQLtextArea.setLineWrap(true);
         SQLtextArea.setWrapStyleWord(true);
         resultArea.setLineWrap(true);
@@ -51,16 +52,16 @@ public class Form {
             public void mousePressed(MouseEvent e) {
 
                 // 重定向 System.out 输出到 JTextArea
-                TextOutputStream taOutputStream = new TextOutputStream(resultArea);
-                PrintStream ps = new PrintStream(taOutputStream);
-                System.setOut(ps);  // 将标准输出重定向到 PrintStream
+//                TextOutputStream taOutputStream = new TextOutputStream(resultArea);
+//                PrintStream ps = new PrintStream(taOutputStream);
+//                System.setOut(ps);  // 将标准输出重定向到 PrintStream
                 System.out.println("Executing SQL: " + SQLtextArea.getText());
                 String sql = SQLtextArea.getText();
                 try {
                     Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
-                    if(statement instanceof CreateTable && (privilege == "connect")){
+                    if(statement instanceof CreateTable && ("USER".equals(privilege))){
                         System.out.println("当前用户没有创建表格的权限！");
-                    }else if(statement instanceof Grant && (privilege!="dba")){
+                    }else if(statement instanceof Grant && (!("dba".equals(privilege)))){
                         System.out.println("当前用户没有授予权限和撤销权限的功能！");
                     }else if(statement instanceof Select){
                         List<String> tables = processSelect((Select) statement);
