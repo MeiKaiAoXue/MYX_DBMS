@@ -88,16 +88,19 @@ public class    Processor {
      */
     private static void processAlter(Alter statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
+        System.out.println("处理Alter Table语句");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile(currentDBName+ "/" + tableName + ".txt");
         List<TableMetaData1> tables=db.getTables();
+//        List<TableMetaData1> tables=db.getTables();
         if (table == null) {
             Logging.log("Table " + tableName + " does not exist");
             Logging.log("Please create the table before inserting data");
             return;
         }
         List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+        List<TableMetaData1.ConstraintsMetaData> table_constraints = table.getConstraints();
         //"ALTER TABLE AA DROP COLUMN COLUMN1"
         System.out.println(tableName);
         System.out.println(statement.getAlterExpressions().toString());
@@ -108,10 +111,12 @@ public class    Processor {
         String dataType=null;
         // 去除开头可能的空白字符
         alterStatment = alterStatment.trim();
+        // 全部转换成大写
+        alterStatment = alterStatment.toUpperCase();
         //判断语句是drop还是add或是修改
-        if (alterStatment.startsWith("[DROP")) {
+        if (alterStatment.startsWith("[DROP COLUMN")) {
             // 语句以DROP开头
-            //System.out.println("The statement starts with DROP");
+            System.out.println("The statement starts with DROP");
             //drop单列
             //判断是否有元组记录，没有直接删除db中的列，有则先删除数据再删除列-->不用考虑，无论如何都要删db.txt，不影响修改xx.txt
             String dropColName = statement.getAlterExpressions().get(0).getColumnName();
@@ -145,7 +150,7 @@ public class    Processor {
                 FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
             }
 
-        } else if (alterStatment.startsWith("[ADD")) {
+        } else if (alterStatment.startsWith("[ADD COLUMN")) {
             // 语句以ADD开头
             System.out.println("The statement starts with ADD");
             //对add单列进行操作,转换成createtable中的语句
@@ -232,7 +237,165 @@ public class    Processor {
             FileUtils.writeObjectToFile(db, currentDBName+"./db.txt");
         } else {
             // 其他情况
-            System.out.println("The statement does not start with DROP or ADD");
+//            System.out.println("The statement does not start with DROP or ADD");
+//            String sql = "ALTER TABLE employees\n" +
+//                    "DROP CONSTRAINT UK_employee;";
+
+
+            if (alterStatment.startsWith("[DROP CONSTRAINT"))
+            {
+                // 语句以DROP CONSTRAINT开头
+                System.out.println("The statement starts with DROP CONSTRAINT");
+                String drop_constraintName = alterStatment.split(" ")[2];
+                drop_constraintName = drop_constraintName.replace("]", "").trim();
+                System.out.println("[删除约束的约束名是]"+drop_constraintName);
+                // 检查表元数据中是否存在这个约束
+                boolean found = false;
+                for (TableMetaData1.ConstraintsMetaData constraint : table_constraints) {
+                    if (constraint.getConstraintName().equals(drop_constraintName)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    Logging.log("Constraint " + drop_constraintName + " does not exist");
+                    System.out.println("Constraint " + drop_constraintName + " does not exist");
+                    Logging.log("DROP CONSTRAINT failed");
+                    System.out.println("DROP CONSTRAINT failed");
+                    return;
+                }
+
+                // 删除表元数据中的约束
+                table.dropConstraint(drop_constraintName);
+                System.out.println("删除约束成功");
+                // 修改db.txt
+                FileUtils.writeObjectToFile(db, "./db.txt");
+            } else if (alterStatment.startsWith("[ADD CONSTRAINT"))
+            {
+                //            String sql2 = "ALTER TABLE employees\n" +
+                //                    "ADD CONSTRAINT UK_EMAIL UNIQUE (email);";
+//                String sql2 = "ALTER TABLE employees\n" +
+//              "ADD CONSTRAINT CHECK_EMAIL_FORMAT CHECK (email LIKE '%@%.%');";
+                // 语句以ADD CONSTRAINT开头
+                System.out.println("The statement starts with ADD CONSTRAINT");
+                // 提取约束类型
+                // 提取约束名
+                // 提取约束条件
+                String regex = "ADD CONSTRAINT (\\w+) (\\w+) \\((.+)\\)";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(alterStatment);
+
+                if (matcher.find()) {
+                    String constraintName = matcher.group(1);
+                    String constraintType = matcher.group(2);
+                    String constraintCondition = matcher.group(3);
+                    constraintCondition = "(" + constraintCondition + ")";
+
+                    System.out.println("Constraint Name: " + constraintName);
+                    System.out.println("Constraint Type: " + constraintType);
+                    System.out.println("Constraint Condition: " + constraintCondition);
+
+                    // 从约束名字中获取字段名
+                    columnName = constraintName.split("_")[1];
+
+                    // 检查表元数据中是否存在这个约束
+                    boolean found = false;
+                    for (TableMetaData1.ConstraintsMetaData constraint : table_constraints) {
+                        if (constraint.getConstraintName().equals(constraintName)) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        Logging.log("Constraint " + constraintName + " already exists");
+                        System.out.println("Constraint " + constraintName + " already exists");
+                        Logging.log("ADD CONSTRAINT failed");
+                        System.out.println("ADD CONSTRAINT failed");
+                        return;
+                    }
+
+                    // 获取字段名对应的索引
+                    int columnIndex = -1;
+                    for (int i = 0; i < table_columns.size(); i++) {
+                        if (table_columns.get(i).getColumnName().equals(columnName)) {
+                            columnIndex = i;
+                            break;
+                        }
+                    }
+
+                    // 检查是否有数据，以及数据是否符合新的约束条件
+                    if (all_values.size() > 0) {
+                        for (List<Object> row : all_values) {
+                            // 检查约束条件是否匹配
+                            if (!checkConstraints(db, table, all_values, columnName, row.get(columnIndex).toString())) {
+                                Logging.log("Constraint check failed for column " + columnName + " with value " + constraintCondition);
+                                System.out.println("Constraint check failed for column " + columnName + " with value " + constraintCondition);
+                                Logging.log("ADD CONSTRAINT failed");
+                                System.out.println("ADD CONSTRAINT failed");
+                                return;
+                            }
+                        }
+                    }
+
+                    // 添加表元数据中的约束
+                    table.addConstraint(constraintName, constraintType, constraintCondition);
+                    System.out.println("添加约束成功");
+                    // 修改db.txt
+                    FileUtils.writeObjectToFile(db, "./db.txt");
+                }
+
+            } else if (alterStatment.startsWith("[MODIFY COLUMN"))
+            {
+                //            String sql3 = "ALTER TABLE employees\n" +
+                //                    "MODIFY COLUMN email VARCHAR(100);";
+                // 语句以MODIFY COLUMN开头
+                System.out.println("The statement starts with MODIFY COLUMN");
+                // 提取列名和数据类型
+                columnName = alterStatment.split(" ")[2];
+                String newDataType = alterStatment.split(" ")[3];
+                if (newDataType.equals("VARCHAR"))
+                {
+                    int index = alterStatment.indexOf("VARCHAR");
+                    newDataType = newDataType + alterStatment.substring(index + 6, alterStatment.length() - 1);
+                } else if (newDataType.equals("CHAR")) {
+                    int index = alterStatment.indexOf("CHAR");
+                    newDataType = newDataType + alterStatment.substring(index + 4, alterStatment.length() - 1);
+                }
+                // 输出结果
+                System.out.println("Column Name: " + columnName);
+                System.out.println("New Data Type: " + newDataType);
+                // 获取字段名对应的索引
+                int columnIndex = -1;
+                for (int i = 0; i < table_columns.size(); i++) {
+                    if (table_columns.get(i).getColumnName().equals(columnName)) {
+                        columnIndex = i;
+                        break;
+                    }
+                }
+                // 检查是否有数据，以及数据是否符合新的数据类型
+                if (all_values.size() > 0) {
+                    for (List<Object> row : all_values) {
+                        // 检查数据类型是否匹配
+                        if (!isValid(row.get(columnIndex).toString(), newDataType)) {
+                            Logging.log("Value " + row.get(columnIndex).toString() + " is not valid for column " + columnName + " of type " + newDataType);
+                            System.out.println("Value " + row.get(columnIndex).toString() + " is not valid for column " + columnName + " of type " + newDataType);
+                            Logging.log("MODIFY COLUMN failed");
+                            System.out.println("MODIFY COLUMN failed");
+                            return;
+                        }
+                    }
+                }
+
+                // 修改表元数据中的列数据类型
+                table_columns.get(columnIndex).setColumnType(newDataType);
+                System.out.println("修改字段类型成功");
+                // 修改db.txt
+                FileUtils.writeObjectToFile(db, "./db.txt");
+            }
+
+
         }
 
     }
@@ -244,6 +407,7 @@ public class    Processor {
      */
     private static void processDelete(Delete statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+"./db.txt");
+        System.out.println("处理DELETE Table语句");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
@@ -386,6 +550,7 @@ public class    Processor {
      */
     private static void processUpdate(Update statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+"./db.txt");
+        System.out.println("处理update Table语句");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
         List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
@@ -494,6 +659,7 @@ public class    Processor {
      */
     public static  List<String>  processSelect(Select statement) throws  IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
+        System.out.println("处理select Table语句");
         PlainSelect plainSelect = statement.getPlainSelect();
 //        System.out.println("【DISTINCT 子句】：" + plainSelect.getDistinct());
 //        System.out.println("【查询字段】：" + plainSelect.getSelectItems());
@@ -522,6 +688,7 @@ public class    Processor {
         TableMetaData1 table = db.getTable(tableName.toString());
         List<String> output = new ArrayList<>();
         List<TableMetaData1.ColumnMetaData> table_columns = table.getColumns();
+
         List<Integer> indexList = new ArrayList<>();//指定输出的列名下标
         //正则处理where
         String beforeOperator = null;
@@ -1122,8 +1289,13 @@ public class    Processor {
         return output;
     }
 
+    /**
+     * 处理insert Table语句
+     * @param Insert
+     */
     private static void processInsert(Insert statement) throws IOException {
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
+        System.out.println("处理insert语句");
 
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
@@ -1144,6 +1316,7 @@ public class    Processor {
                 int valueNum = statement.getSelect().getValues().getExpressions().size();
                 if (columns.size() != valueNum) {
                     Logging.log("Number of columns does not match number of values");
+                    System.out.println("Number of columns does not match number of values");
                     return;
                 }
 
@@ -1151,9 +1324,10 @@ public class    Processor {
                 // 判断insert的字段数和tableMetaData中的字段数是否匹配
                 if (columns.size() == table_columns.size()) {
                     System.out.println("insert字段数和tableMetaData字段数相等");
+                    ExpressionList<?> expressions = statement.getSelect().getValues().getExpressions();
                     // 赋值到row中
                     for (int i = 0; i < columns.size(); i++) {
-                        row.add(statement.getSelect().getValues().getExpressions().get(i).toString());
+                        row.add(expressions.get(i).toString().replace("(", "").replace(")", "").strip());
                     }
 
                     // 判断每个字段的值是否匹配
@@ -1168,11 +1342,13 @@ public class    Processor {
                         // 判断每个类型是否匹配
                         if (!isValid(value, columnType)) {
                             Logging.log("Value " + value + " is not valid for column " + columnName + " of type " + columnType);
+                            System.out.println("Value " + value + " is not valid for column " + columnName + " of type " + columnType);
                             return;
                         }
                         // 判断约束条件是否匹配
                         if (!checkConstraints(db, table, all_values, columnName, value)) {
                             Logging.log("Constraint check failed for column " + columnName + " with value " + value);
+                            System.out.println("Constraint check failed for column " + columnName + " with value " + value);
                             return;
                         }
                     }
@@ -1209,17 +1385,20 @@ public class    Processor {
                         // 判断每个类型是否匹配
                         if (!isValid(value, columnType)) {
                             Logging.log("Value " + value + " is not valid for column " + columnName + " of type " + columnType);
+                            System.out.println("Value " + value + " is not valid for column " + columnName + " of type " + columnType);
                             return;
                         }
                         // 判断约束条件是否匹配
                         if (!checkConstraints(db, table, all_values, columnName, value)) {
                             Logging.log("Constraint check failed for column " + columnName + " with value " + value);
+                            System.out.println("Constraint check failed for column " + columnName + " with value " + value);
                             return;
                         }
                     }
 
                 } else {
-                    Logging.log("insert字段数大于tableMetaData字段数");
+                    Logging.log("insert字段数大于tableMetaData字段数,非法插入数据");
+                    System.out.println("insert字段数大于tableMetaData字段数,非法插入数据");
                     return;
                 }
 
@@ -1229,6 +1408,7 @@ public class    Processor {
                     System.out.println("Inserted row: " + row);
                 } else {
                     Logging.log("Row size does not match column size");
+                    System.out.println("Row size does not match column size");
                 }
             }
         }
@@ -1284,6 +1464,7 @@ public class    Processor {
                     break;
                 case "CHECK":
                     constraintCondition = constraint.getConstraintCondition();
+                    // 消除两端括号
                     constraintCondition = constraintCondition.replaceAll("\\((.*?)\\)", "$1");
                     // int
                     try {
@@ -1423,10 +1604,12 @@ public class    Processor {
     // 给insert判断值和字段类型是否匹配，DATE类型暂且当作String处理
     private static boolean isValid(String value, String columnType) {
         System.out.println("字段类型是： " + columnType);
+        System.out.println("值是： " + value);
         if (columnType.equals("INT")) {
             // 判断是否为int
             try {
-                Integer.parseInt(value);
+                int intValue = Integer.parseInt(value);
+                System.out.println("是int " + intValue );
             } catch (NumberFormatException e) {
                 return false;
             }
@@ -1476,9 +1659,12 @@ public class    Processor {
         TableMetaData1 checkTable = db.getTable(tableName);
         if (checkTable != null) {
             Logging.log("Table " + tableName + " already exists");
+            System.out.println("Table " + tableName + " already exists");
             return;
         }
 
+        //   String sql2 = "Create Table BB (column1 INT CHECK (column1 > 2) );";
+        //   String sql3 = "CREATE TABLE AA (column1 INT REFERENCES aa(a2), column2 VARCHAR(255) NOT NULL UNIQUE);";
         TableMetaData1 newTableMetaData = new TableMetaData1(tableName);
         createTable.getColumnDefinitions().forEach(columnDefinition -> {
             // 给表元数据添加列元数据
@@ -1511,6 +1697,7 @@ public class    Processor {
                         case CHECK:
                             int checkIndex = columnDefinition.getColumnSpecs().indexOf("CHECK");
                             String checkCondition = columnDefinition.getColumnSpecs().get(checkIndex + 1);
+//                          // (COLUMN1 > 2)存进去， testCreateTable中有正则解析代码
                             newTableMetaData.addConstraint("CK_" + columnDefinition.getColumnName(), "CHECK", checkCondition);
                             break;
                         case DEFAULT:

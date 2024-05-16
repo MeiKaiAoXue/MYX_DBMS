@@ -51,10 +51,10 @@ public class Form {
             @Override
             public void mousePressed(MouseEvent e) {
 
-                // 重定向 System.out 输出到 JTextArea
-//                TextOutputStream taOutputStream = new TextOutputStream(resultArea);
-//                PrintStream ps = new PrintStream(taOutputStream);
-//                System.setOut(ps);  // 将标准输出重定向到 PrintStream
+//重定向 System.out 输出到 JTextArea
+                TextOutputStream taOutputStream = new TextOutputStream(resultArea);
+                PrintStream ps = new PrintStream(taOutputStream);
+                System.setOut(ps);  // 将标准输出重定向到 PrintStream
                 System.out.println("Executing SQL: " + SQLtextArea.getText());
                 String sql = SQLtextArea.getText();
                 try {
