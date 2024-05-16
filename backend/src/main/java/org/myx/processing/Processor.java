@@ -6,7 +6,6 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.alter.Alter;
-import net.sf.jsqlparser.statement.alter.AlterExpression;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.view.CreateView;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -16,13 +15,8 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.update.Update;
-import net.sf.jsqlparser.util.deparser.GrantDeParser;
 import net.sf.jsqlparser.statement.update.UpdateSet;
-import org.jetbrains.annotations.NotNull;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.update.Update;
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
 import org.myx.fileIo.metadata.*;
@@ -35,7 +29,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 public class    Processor {
     private static String currentDBName;
@@ -45,8 +38,14 @@ public class    Processor {
 
     public static void process(String sql) {
         try {
+            String SQL = sql.toString().toUpperCase();
+            // 检查是否是 CREATE USER 语句
+            Pattern pattern = Pattern.compile("CREATE USER\\s+(\"?)(.*?)\\1\\s+IDENTIFIED BY\\s+(\"?)(.*?)\\3");
+            Matcher matcher = pattern.matcher(SQL);
             Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
-
+// 检查是否是 DROP USER 语句
+            Pattern dropUserPattern = Pattern.compile("DROP USER\\s+(\"?)(.*?)\\1");
+            Matcher dropUserMatcher = dropUserPattern.matcher(SQL);
             if (statement instanceof CreateTable) {
                 processCreate((CreateTable) statement);
             } else if (statement instanceof Drop) {
@@ -67,6 +66,50 @@ public class    Processor {
                 processDelete((Delete) statement);
             } else if (statement instanceof CreateView) {
                 processCreateView((CreateView)statement);
+            }else if(matcher.find()){
+                String userName = matcher.group(1);
+                String password = matcher.group(2);
+
+                // 读取用户文件中的用户列表
+                List<UserMetaData> users = (List<UserMetaData>) FileUtils.readObjectFromFile(currentDBName + "/users.txt");
+
+                // 检查用户是否已经存在
+                for (UserMetaData user : users) {
+                    if (user.getUserName().equals(userName)) {
+                        System.out.println("User " + userName + " already exists");
+                        Logging.log("User " + userName + " already exists");
+                        return;
+                    }
+                }
+
+                // 创建新用户
+                UserMetaData newUser = new UserMetaData(userName, password, UserMetaData.UserType.USER);
+                users.add(newUser);
+
+                // 写入用户文件
+                FileUtils.writeObjectToFile(users, currentDBName + "/users.txt");
+                System.out.println("User " + userName + " created successfully");
+                Logging.log("User " + userName + " created successfully");
+                return;
+            }else if(dropUserMatcher.find()){
+                String userName = dropUserMatcher.group(1);
+
+                // 读取用户文件中的用户列表
+                List<UserMetaData> users = (List<UserMetaData>) FileUtils.readObjectFromFile(currentDBName + "/users.txt");
+
+                // 查找并删除用户
+                boolean userRemoved = users.removeIf(user -> user.getUserName().equals(userName));
+
+                if (userRemoved) {
+                    // 写入用户文件
+                    FileUtils.writeObjectToFile(users, currentDBName + "/users.txt");
+                    System.out.println("User " + userName + " dropped successfully");
+                    Logging.log("User " + userName + " dropped successfully");
+                } else {
+                    System.out.println("User " + userName + " does not exist");
+                    Logging.log("User " + userName + " does not exist");
+                }
+                return;
             }
             else {
                 Logging.log("Error processing SQL: " + sql);
@@ -76,6 +119,7 @@ public class    Processor {
             e.printStackTrace();
         }
     }
+
 
     /**
      * 批处理SQL文件
@@ -2704,6 +2748,7 @@ public class    Processor {
      * @param createTable
      */
     private static void processCreate(CreateTable createTable) throws IOException {
+
         DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
 
         String tableName = createTable.getTable().getName();

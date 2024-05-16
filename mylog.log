@@ -66,3 +66,25 @@
 信息: Please create the table before inserting data
 5月 16, 2024 6:26:10 下午 org.myx.fileIo.Logging log
 信息: Table AA already exists
+5月 16, 2024 11:08:27 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified 123
+5月 16, 2024 11:11:29 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified by 123
+5月 16, 2024 11:11:42 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified by 123;
+5月 16, 2024 11:12:12 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified by 123
+5月 16, 2024 11:13:03 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified by 123
+5月 16, 2024 11:16:02 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified by 123
+5月 16, 2024 11:31:36 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified by 123
+5月 16, 2024 11:58:44 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1 identified by 123
+5月 16, 2024 11:59:14 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1  identified by 123
+5月 17, 2024 12:02:55 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: create user user1  identified by 123
+5月 17, 2024 12:05:40 上午 org.myx.fileIo.Logging log
+信息: User  created successfully
