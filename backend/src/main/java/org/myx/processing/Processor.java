@@ -27,10 +27,10 @@ import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.Logging;
 import org.myx.fileIo.metadata.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
@@ -50,7 +50,7 @@ public class    Processor {
             if (statement instanceof CreateTable) {
                 processCreate((CreateTable) statement);
             } else if (statement instanceof Drop) {
-//                processDrop((Drop) statement);
+                processDrop((Drop) statement);
             } else if (statement instanceof Alter) {
                 processAlter((Alter) statement);
             } else if (statement instanceof Select) {
@@ -75,6 +75,49 @@ public class    Processor {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 批处理SQL文件
+     */
+    public static void batchProcess(String filePath) {
+        try (Scanner scanner = new Scanner(new File(filePath))) {
+            scanner.useDelimiter("\\Z"); // 读取整个文件
+            String content = scanner.next();
+
+            // 根据分号来分割文件内容，得到一个包含所有SQL语句的数组
+            String[] sqlStatements = content.split(";");
+
+            System.out.println("所有SQL如下：");
+            // 遍历数组，对每个SQL语句进行处理
+            for (String sqlStatement : sqlStatements) {
+                sqlStatement = sqlStatement + ";";
+                System.out.println(sqlStatement);
+                process(sqlStatement);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 处理 Drop Table语句
+     * @param Drop
+     */
+    private static void processDrop(Drop statement) throws IOException {
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+ "/db.txt");
+        String tableName = statement.getName().getName();
+        TableMetaData1 table = db.getTable(tableName);
+        if (table == null) {
+            Logging.log("Table " + tableName + " does not exist");
+            Logging.log("Please create the table before inserting data");
+            return;
+        }
+        db.dropTable(tableName);
+        // 修改数据库目录
+        FileUtils.writeObjectToFile(db, currentDBName+ "/db.txt");
+        // 删除表的所有数据
+        FileUtils.deleteFile(currentDBName+ "/" + tableName + ".txt");
     }
 
     private  static void processGrant(Grant statement) throws IOException{

@@ -95,6 +95,12 @@ public class DBMetaData implements Serializable {
     }
 
 
-
-
+    public void dropTable(String tableName) {
+        for (TableMetaData1 table : tables) {
+            if (table.getTableName().equals(tableName)) {
+                tables.remove(table);
+                break;
+            }
+        }
+    }
 }
