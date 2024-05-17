@@ -142,25 +142,25 @@ public class    Processor {
             // 处理其他 SQL 语句
             Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
             if (statement instanceof CreateTable) {
-                if (!isAdmin && !hasResourcePrivilege) {
+                if (!isAdmin && !hasResourcePrivilege && !hasDbaPrivilege) {
                     System.out.println("NO create privilege!");
                     return;
                 }
                 processCreate((CreateTable) statement);
             } else if (statement instanceof Drop) {
-                if (!isAdmin && !hasResourcePrivilege) {
+                if (!isAdmin && !hasResourcePrivilege && !hasDbaPrivilege) {
                     System.out.println("当前用户没有删除表格的权限！");
                     return;
                 }
                 processDrop((Drop) statement);
-            } else if (statement instanceof Alter) {
+            } else if (statement instanceof Alter && !hasDbaPrivilege) {
                 if (!isAdmin && !hasResourcePrivilege) {
                     System.out.println("当前用户没有修改表格的权限！");
                     return;
                 }
                 processAlter((Alter) statement);
             } else if (statement instanceof Select) {
-                if (!isAdmin && !hasConnectPrivilege && !hasDbaPrivilege) {
+                if (!isAdmin && !hasConnectPrivilege && !hasDbaPrivilege &&!hasResourcePrivilege) {
                     System.out.println("当前用户没有查询数据的权限！");
                     return;
                 }

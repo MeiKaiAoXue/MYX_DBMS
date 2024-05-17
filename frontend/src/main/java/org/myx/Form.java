@@ -32,6 +32,7 @@ public class Form {
     public JFrame frame;
     public JPanel formPanel;
     private JTextArea SQLtextArea;
+
     private JTextArea resultArea;
     private JButton commit;
     private JPanel tablePanel;
