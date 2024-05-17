@@ -621,11 +621,11 @@ public class    Processor {
      * @param Delete
      */
     private static void processDelete(Delete statement) throws IOException {
-        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+"./db.txt");
+        DBMetaData db = (DBMetaData) FileUtils.readObjectFromFile(currentDBName+"/db.txt");
         System.out.println("处理DELETE Table语句");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
-        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile(currentDBName+'/'+ tableName + ".txt");
         if (table == null) {
             Logging.log("Table " + tableName + " does not exist");
             Logging.log("Please create the table before inserting data");
@@ -755,7 +755,7 @@ public class    Processor {
         }
 
 
-        FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+        FileUtils.writeObjectToFile(all_values, currentDBName+'/' + tableName + ".txt");
     }
 
     /**
