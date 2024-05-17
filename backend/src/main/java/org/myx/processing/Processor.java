@@ -38,6 +38,7 @@ public class    Processor {
 
     public static void process(String sql) {
         try {
+
             String SQL = sql.toString().toUpperCase();
             // 检查是否是 CREATE USER 语句
             Pattern pattern = Pattern.compile("CREATE USER\\s+([^\\s]+)\\s+IDENTIFIED BY\\s+([^\\s]+)", Pattern.CASE_INSENSITIVE);
@@ -47,11 +48,11 @@ public class    Processor {
 
             Matcher dropUserMatcher = dropUserPattern.matcher(SQL);
             //检查是否是revoke
-            Pattern revokePrivilegesPattern = Pattern.compile("REVOKE (.*?) FROM\\s+(\"?)(.*?)\\2", Pattern.CASE_INSENSITIVE);
+            Pattern revokePrivilegesPattern = Pattern.compile("REVOKE\\s+(.*?)\\s+FROM\\s+(\"?)([^\\s\"]+)\\2", Pattern.CASE_INSENSITIVE);
             Matcher revokePrivilegesMatcher = revokePrivilegesPattern.matcher(SQL);
             //检查是否是grant
-            Pattern grantPrivilegesPattern = Pattern.compile("GRANT (.*?) TO\\s+(\"?)(.*?)\\2", Pattern.CASE_INSENSITIVE);
-            Matcher grantPrivilegesMatcher = grantPrivilegesPattern.matcher(sql);
+            Pattern grantPrivilegesPattern = Pattern.compile("GRANT\\s+(.*?)\\s+TO\\s+([^\\s]+)", Pattern.CASE_INSENSITIVE);
+            Matcher matcherGrant = grantPrivilegesPattern.matcher(SQL);
             if(matcher.find()){
                 String userName = matcher.group(1);
                 String password = matcher.group(2);
@@ -100,9 +101,11 @@ public class    Processor {
                 String userName = revokePrivilegesMatcher.group(3);
                 revokePrivileges(userName, privileges);
                 return;
-            }else if (grantPrivilegesMatcher.find()) {
-                String privileges = grantPrivilegesMatcher.group(1);
-                String userName = grantPrivilegesMatcher.group(3);
+            }else if (matcherGrant.find()) {
+                String privileges = matcherGrant.group(1).trim();
+                String userName = matcherGrant.group(2).trim();
+                System.out.println("Privileges: " + privileges);
+                System.out.println("User: " + userName);
                 grantPrivileges(userName, privileges);
                 return;
             }
