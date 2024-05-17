@@ -40,33 +40,19 @@ public class    Processor {
         try {
             String SQL = sql.toString().toUpperCase();
             // 检查是否是 CREATE USER 语句
-            Pattern pattern = Pattern.compile("CREATE USER\\s+(\"?)(.*?)\\1\\s+IDENTIFIED BY\\s+(\"?)(.*?)\\3");
+            Pattern pattern = Pattern.compile("CREATE USER\\s+([^\\s]+)\\s+IDENTIFIED BY\\s+([^\\s]+)", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(SQL);
-            Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
-// 检查是否是 DROP USER 语句
-            Pattern dropUserPattern = Pattern.compile("DROP USER\\s+(\"?)(.*?)\\1");
+            // 检查是否是 DROP USER 语句
+            Pattern dropUserPattern = Pattern.compile("DROP USER\\s+([^\\s]+)");
+
             Matcher dropUserMatcher = dropUserPattern.matcher(SQL);
-            if (statement instanceof CreateTable) {
-                processCreate((CreateTable) statement);
-            } else if (statement instanceof Drop) {
-                processDrop((Drop) statement);
-            } else if (statement instanceof Alter) {
-                processAlter((Alter) statement);
-            } else if (statement instanceof Select) {
-                processSelect((Select) statement);
-            } else if (statement instanceof Insert) {
-                processInsert((Insert) statement);
-            } else if (statement instanceof Update) {
-                processUpdate((Update) statement);
-            } else if (statement instanceof Delete) {
-//                processDelete((Delete) statement);
-            } else if (statement instanceof  Grant) {
-                processGrant((Grant) statement);
-            } else if (statement instanceof Delete){
-                processDelete((Delete) statement);
-            } else if (statement instanceof CreateView) {
-                processCreateView((CreateView)statement);
-            }else if(matcher.find()){
+            //检查是否是revoke
+            Pattern revokePrivilegesPattern = Pattern.compile("REVOKE (.*?) FROM\\s+(\"?)(.*?)\\2", Pattern.CASE_INSENSITIVE);
+            Matcher revokePrivilegesMatcher = revokePrivilegesPattern.matcher(SQL);
+            //检查是否是grant
+            Pattern grantPrivilegesPattern = Pattern.compile("GRANT (.*?) TO\\s+(\"?)(.*?)\\2", Pattern.CASE_INSENSITIVE);
+            Matcher grantPrivilegesMatcher = grantPrivilegesPattern.matcher(sql);
+            if(matcher.find()){
                 String userName = matcher.group(1);
                 String password = matcher.group(2);
 
@@ -109,7 +95,41 @@ public class    Processor {
                     System.out.println("User " + userName + " does not exist");
                     Logging.log("User " + userName + " does not exist");
                 }
+            }else if(revokePrivilegesMatcher.find()){
+                String privileges = revokePrivilegesMatcher.group(1);
+                String userName = revokePrivilegesMatcher.group(3);
+                revokePrivileges(userName, privileges);
                 return;
+            }else if (grantPrivilegesMatcher.find()) {
+                String privileges = grantPrivilegesMatcher.group(1);
+                String userName = grantPrivilegesMatcher.group(3);
+                grantPrivileges(userName, privileges);
+                return;
+            }
+
+            Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
+            if (statement instanceof CreateTable) {
+                processCreate((CreateTable) statement);
+            } else if (statement instanceof Drop) {
+                processDrop((Drop) statement);
+            } else if (statement instanceof Alter) {
+                processAlter((Alter) statement);
+            } else if (statement instanceof Select) {
+                processSelect((Select) statement);
+            } else if (statement instanceof Insert) {
+                processInsert((Insert) statement);
+            } else if (statement instanceof Update) {
+                processUpdate((Update) statement);
+            } else if (statement instanceof Delete) {
+                processDelete((Delete) statement);
+            }
+//            else if (statement instanceof  Grant) {
+//                processGrant((Grant) statement);
+//            }
+            else if (statement instanceof Delete){
+                processDelete((Delete) statement);
+            } else if (statement instanceof CreateView) {
+                processCreateView((CreateView)statement);
             }
             else {
                 Logging.log("Error processing SQL: " + sql);
@@ -119,6 +139,55 @@ public class    Processor {
             e.printStackTrace();
         }
     }
+
+    private static void grantPrivileges(String userName, String privileges) throws IOException {
+        List<UserMetaData> users = (List<UserMetaData>) FileUtils.readObjectFromFile(currentDBName + "/users.txt");
+        UserMetaData user = users.stream()
+                .filter(u -> u.getUserName().equals(userName))
+                .findFirst()
+                .orElse(null);
+        if (user == null) {
+            System.out.println("User " + userName + " not found.");
+            return;
+        }
+        String[] privilegeArray = privileges.split(",");
+        for (String privilege : privilegeArray) {
+            privilege = privilege.trim().toUpperCase();
+            try {
+                UserMetaData.Privilege userPrivilege = UserMetaData.Privilege.valueOf(privilege);
+                user.addPrivilege(userPrivilege);
+                System.out.println("Privilege " + privilege + " granted to user " + userName);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid privilege: " + privilege);
+            }
+        }
+        FileUtils.writeObjectToFile(users, currentDBName + "/users.txt");
+    }
+
+    private static void revokePrivileges(String userName, String privileges) throws IOException {
+        List<UserMetaData> users = (List<UserMetaData>) FileUtils.readObjectFromFile(currentDBName + "/users.txt");
+        UserMetaData user = users.stream()
+                .filter(u -> u.getUserName().equals(userName))
+                .findFirst()
+                .orElse(null);
+        if (user == null) {
+            System.out.println("User " + userName + " not found.");
+            return;
+        }
+        String[] privilegeArray = privileges.split(",");
+        for (String privilege : privilegeArray) {
+            privilege = privilege.trim().toUpperCase();
+            try {
+                UserMetaData.Privilege userPrivilege = UserMetaData.Privilege.valueOf(privilege);
+                user.removePrivilege(userPrivilege);
+                System.out.println("Privilege " + privilege + " revoked from user " + userName);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid privilege: " + privilege);
+            }
+        }
+        FileUtils.writeObjectToFile(users, currentDBName + "/users.txt");
+    }
+
 
 
     /**

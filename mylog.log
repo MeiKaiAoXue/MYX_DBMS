@@ -88,3 +88,17 @@
 信息: Error processing SQL: create user user1  identified by 123
 5月 17, 2024 12:05:40 上午 org.myx.fileIo.Logging log
 信息: User  created successfully
+5月 17, 2024 8:13:44 上午 org.myx.fileIo.Logging log
+信息: User  already exists
+5月 17, 2024 8:13:55 上午 org.myx.fileIo.Logging log
+信息: User  already exists
+5月 17, 2024 8:16:31 上午 org.myx.fileIo.Logging log
+信息: User  already exists
+5月 17, 2024 8:22:28 上午 org.myx.fileIo.Logging log
+信息: User XYT created successfully
+5月 17, 2024 8:33:10 上午 org.myx.fileIo.Logging log
+信息: User 123 created successfully
+5月 17, 2024 8:36:27 上午 org.myx.fileIo.Logging log
+信息: User 6 created successfully
+5月 17, 2024 8:47:13 上午 org.myx.fileIo.Logging log
+信息: User XYT dropped successfully

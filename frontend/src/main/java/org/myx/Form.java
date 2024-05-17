@@ -6,16 +6,14 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.grant.Grant;
 import net.sf.jsqlparser.statement.select.Select;
-import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.TextOutputStream;
-import org.myx.fileIo.metadata.DBMetaData;
-import org.myx.fileIo.metadata.TableMetaData1;
 import org.myx.fileIo.metadata.UserMetaData;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -23,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.regex.Pattern;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -38,9 +37,10 @@ public class Form {
     private JPanel tablePanel;
     private JLabel userLabel;
     private JTree tree1;
+    private JButton newButton;
     private UserMetaData user;
 
-    public Form(UserMetaData user){
+    public Form(UserMetaData user) {
         this.user = user;
         userLabel.setText("当前用户：" + user.getUserName());
         UserMetaData.UserType privilege = user.getUserType();
@@ -70,14 +70,11 @@ public class Form {
                 System.out.println("Executing SQL: " + SQLtextArea.getText());
                 String sql = SQLtextArea.getText();
                 try {
-                    Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
-                    if(statement instanceof CreateTable && ("USER".equals(privilege))){
-                        System.out.println("当前用户没有创建表格的权限！");
-                    }else if(statement instanceof Grant && (!("dba".equals(privilege)))){
-                        System.out.println("当前用户没有授予权限和撤销权限的功能！");
-                    }else if(statement instanceof Select)
-                    {
-                        List<String> tables = processSelect((Select) statement);
+                    String trimmedSql = sql.trim();
+                    Pattern selectPattern = Pattern.compile("^(?i)select\\b");
+
+                    if (selectPattern.matcher(trimmedSql).find()) {
+                        List<String> tables = processSelect((Select) CCJSqlParserUtil.parse(trimmedSql));
                         // 处理列名
                         Vector<String> columnNames = new Vector<>();
                         columnNames.addAll(Arrays.asList(tables.get(0).split(" ")));
@@ -91,11 +88,11 @@ public class Form {
                             }
                             data.add(row);
                         }
-                        try{
+                        try {
                             // 创建表格模型
                             DefaultTableModel model = new DefaultTableModel(data, columnNames);
                             JTable table = new JTable(model);
-                            table.setFont(new Font("",Font.BOLD,19));
+                            table.setFont(new Font("", Font.BOLD, 19));
                             JScrollPane scrollPane = new JScrollPane(table); // 将表格添加到滚动窗格中
                             tablePanel.removeAll(); // 移除旧组件
                             tablePanel.add(scrollPane, BorderLayout.CENTER); // 将滚动窗格添加到面板中
@@ -104,15 +101,36 @@ public class Form {
                         } catch (Exception ex) {
                             throw new RuntimeException(ex);
                         }
-                    }
-                    else {
-                        process(sql);
+                    } else {
+                            process(trimmedSql);
                     }
                 } catch (JSQLParserException | IOException ex) {
                     throw new RuntimeException(ex);
                 }
+
                 //if(statement instanceof CreateTable && (privilege=="dba"||privilege=="resource"))
 
+            }
+        });
+        newButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+
+                JFileChooser fileChooser = new JFileChooser();
+                int returnValue = fileChooser.showOpenDialog(null);
+
+                if (returnValue == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    String filePath = selectedFile.getAbsolutePath();
+                    System.out.println("Selected file: " + filePath);
+
+                    try {
+                        batchProcess(filePath);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
         });
     }
