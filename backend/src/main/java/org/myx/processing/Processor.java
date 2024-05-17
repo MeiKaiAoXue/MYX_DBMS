@@ -35,13 +35,17 @@ public class    Processor {
     public static void setCurrentDBName(String dbName){
         currentDBName = "./" + dbName ;
     }
-    private static UserMetaData currentuser;
+    private static UserMetaData currentUser;
     public static  void setCurrentUser(UserMetaData user){
-        currentuser=user;
+        currentUser=user;
     }
 
     public static void process(String sql) {
         try {
+            boolean isAdmin = currentUser.getUserType() == UserMetaData.UserType.ADMIN;
+            boolean hasConnectPrivilege = currentUser.hasPrivilege(UserMetaData.Privilege.CONNECT);
+            boolean hasResourcePrivilege = currentUser.hasPrivilege(UserMetaData.Privilege.RESOURCE);
+            boolean hasDbaPrivilege = currentUser.hasPrivilege(UserMetaData.Privilege.DBA);
 
             String SQL = sql.toString().toUpperCase();
             // 检查是否是 CREATE USER 语句
@@ -57,7 +61,12 @@ public class    Processor {
             //检查是否是grant
             Pattern grantPrivilegesPattern = Pattern.compile("GRANT\\s+(.*?)\\s+TO\\s+([^\\s]+)", Pattern.CASE_INSENSITIVE);
             Matcher matcherGrant = grantPrivilegesPattern.matcher(SQL);
-            if(matcher.find()){
+            if (matcher.find()) {
+                if (!isAdmin) {
+                    System.out.println("当前用户没有创建用户的权限！");
+                    return;
+                }
+
                 String userName = matcher.group(1);
                 String password = matcher.group(2);
 
@@ -82,7 +91,12 @@ public class    Processor {
                 System.out.println("User " + userName + " created successfully");
                 Logging.log("User " + userName + " created successfully");
                 return;
-            }else if(dropUserMatcher.find()){
+            } else if (dropUserMatcher.find()) {
+                if (!isAdmin) {
+                    System.out.println("当前用户没有删除用户的权限！");
+                    return;
+                }
+
                 String userName = dropUserMatcher.group(1);
 
                 // 读取用户文件中的用户列表
@@ -100,12 +114,23 @@ public class    Processor {
                     System.out.println("User " + userName + " does not exist");
                     Logging.log("User " + userName + " does not exist");
                 }
-            }else if(revokePrivilegesMatcher.find()){
+                return;
+            } else if (revokePrivilegesMatcher.find()) {
+                if (!hasDbaPrivilege) {
+                    System.out.println("当前用户没有撤销权限的功能！");
+                    return;
+                }
+
                 String privileges = revokePrivilegesMatcher.group(1);
                 String userName = revokePrivilegesMatcher.group(3);
                 revokePrivileges(userName, privileges);
                 return;
-            }else if (matcherGrant.find()) {
+            } else if (matcherGrant.find()) {
+                if (!hasDbaPrivilege) {
+                    System.out.println("当前用户没有授予权限的功能！");
+                    return;
+                }
+
                 String privileges = matcherGrant.group(1).trim();
                 String userName = matcherGrant.group(2).trim();
                 System.out.println("Privileges: " + privileges);
@@ -114,31 +139,57 @@ public class    Processor {
                 return;
             }
 
+            // 处理其他 SQL 语句
             Statement statement = CCJSqlParserUtil.parse(sql.toUpperCase());
             if (statement instanceof CreateTable) {
+                if (!isAdmin && !hasResourcePrivilege) {
+                    System.out.println("NO create privilege!");
+                    return;
+                }
                 processCreate((CreateTable) statement);
             } else if (statement instanceof Drop) {
+                if (!isAdmin && !hasResourcePrivilege) {
+                    System.out.println("当前用户没有删除表格的权限！");
+                    return;
+                }
                 processDrop((Drop) statement);
             } else if (statement instanceof Alter) {
+                if (!isAdmin && !hasResourcePrivilege) {
+                    System.out.println("当前用户没有修改表格的权限！");
+                    return;
+                }
                 processAlter((Alter) statement);
             } else if (statement instanceof Select) {
+                if (!isAdmin && !hasConnectPrivilege && !hasDbaPrivilege) {
+                    System.out.println("当前用户没有查询数据的权限！");
+                    return;
+                }
                 processSelect((Select) statement);
             } else if (statement instanceof Insert) {
+                if (!isAdmin && !hasResourcePrivilege && !hasDbaPrivilege) {
+                    System.out.println("当前用户没有插入数据的权限！");
+                    return;
+                }
                 processInsert((Insert) statement);
             } else if (statement instanceof Update) {
+                if (!isAdmin && !hasResourcePrivilege && !hasDbaPrivilege) {
+                    System.out.println("当前用户没有更新数据的权限！");
+                    return;
+                }
                 processUpdate((Update) statement);
             } else if (statement instanceof Delete) {
-                processDelete((Delete) statement);
-            }
-//            else if (statement instanceof  Grant) {
-//                processGrant((Grant) statement);
-//            }
-            else if (statement instanceof Delete){
+                if (!isAdmin && !hasResourcePrivilege && !hasDbaPrivilege) {
+                    System.out.println("当前用户没有删除数据的权限！");
+                    return;
+                }
                 processDelete((Delete) statement);
             } else if (statement instanceof CreateView) {
-                processCreateView((CreateView)statement);
-            }
-            else {
+                if (!isAdmin && !hasResourcePrivilege && !hasDbaPrivilege) {
+                    System.out.println("当前用户没有创建视图的权限！");
+                    return;
+                }
+                processCreateView((CreateView) statement);
+            } else {
                 Logging.log("Error processing SQL: " + sql);
                 throw new IllegalArgumentException("Unsupported SQL statement: " + sql);
             }

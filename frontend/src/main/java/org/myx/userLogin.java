@@ -2,6 +2,7 @@ package org.myx;
 
 import org.myx.fileIo.FileUtils;
 import org.myx.fileIo.metadata.UserMetaData;
+import org.myx.processing.Processor;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -26,6 +27,20 @@ public class userLogin {
         loginButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                try{
+                        UserMetaData currentUser = authenticate(countFiled.getText(),passwordField.getText());
+                        if(currentUser!=null){
+                            Processor.setCurrentUser(currentUser);
+                            openForm(currentUser);
+                            frame.dispose();
+                        }else{
+                            JOptionPane.showMessageDialog(frame,"用户名或者密码错误");
+                        }
+                    }catch(IOException | ClassNotFoundException ex){
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(frame,"无法获取用户数据");
+                }
+
                 try{
                     UserMetaData currentUser = authenticate(countFiled.getText(),passwordField.getText());
                     if(currentUser!=null){

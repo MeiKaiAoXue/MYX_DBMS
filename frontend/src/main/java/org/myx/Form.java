@@ -54,19 +54,16 @@ public class Form {
             public void mousePressed(MouseEvent e) {
 
 //重定向 System.out 输出到 JTextArea
-//                TextOutputStream taOutputStream = new TextOutputStream(resultArea);
-//                PrintStream ps = new PrintStream(taOutputStream);
-//                System.setOut(ps);  // 将标准输出重定向到 PrintStream
-//                System.out.println("Executing SQL: " + SQLtextArea.getText());
-                JTextArea resultArea = new JTextArea();
                 TextOutputStream taOutputStream = new TextOutputStream(resultArea);
-                PrintStream ps = null;
                 try {
-                    ps = new PrintStream(taOutputStream, true, StandardCharsets.UTF_8.name());
-                } catch (UnsupportedEncodingException ex) {
-                    throw new RuntimeException(ex);
+                    PrintStream ps = new PrintStream(taOutputStream, true, "UTF-8");
+                    System.setOut(ps);  // 将标准输出重定向到 PrintStream
+                    System.out.println("Executing SQL: " + SQLtextArea.getText());
+                } catch (UnsupportedEncodingException er) {
+                    er.printStackTrace();
                 }
-                System.setOut(ps);  // 将标准输出重定向到 PrintStream
+                JTextArea resultArea = new JTextArea();
+
                 System.out.println("Executing SQL: " + SQLtextArea.getText());
                 String sql = SQLtextArea.getText();
                 try {
