@@ -1255,10 +1255,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1332,7 +1332,8 @@ public class    Processor {
 
                     }
 
-                } else if (operator.equals(">=")) {
+                }
+                else if (operator.equals(">=")) {
                     if(selectItemStrings.get(0).equals("*")){
                         List<Integer> outPutRowNum = new ArrayList<>();
                         int targetColIndex;
@@ -1377,10 +1378,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1444,10 +1445,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(indexList.get(colIndex)) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(indexList.get(colIndex))+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1497,10 +1498,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1619,10 +1620,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(colIndex) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(colIndex)+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
@@ -1686,10 +1687,10 @@ public class    Processor {
                                 System.out.print(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)));
                                 System.out.print("  ");
                                 if(colIndex==0) {
-                                    output.add(all_values.get(rowIndex).get(indexList.get(colIndex)) + " ");
+                                    output.add(all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex)) + " ");
                                 }else{
                                     rowElement = output.get(rowIndex+1);
-                                    rowElement+=all_values.get(rowIndex).get(indexList.get(colIndex))+" ";
+                                    rowElement+=all_values.get(outPutRowNum.get(rowIndex)).get(indexList.get(colIndex))+" ";
                                     output.set(rowIndex+1,rowElement);
                                 }
                             }
