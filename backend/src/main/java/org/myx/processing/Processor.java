@@ -35,6 +35,10 @@ public class    Processor {
     public static void setCurrentDBName(String dbName){
         currentDBName = "./" + dbName ;
     }
+    private static UserMetaData currentuser;
+    public static  void setCurrentUser(UserMetaData user){
+        currentuser=user;
+    }
 
     public static void process(String sql) {
         try {
