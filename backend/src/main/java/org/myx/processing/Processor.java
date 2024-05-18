@@ -153,7 +153,7 @@ public class    Processor {
                     return;
                 }
                 processDrop((Drop) statement);
-            } else if (statement instanceof Alter && !hasDbaPrivilege) {
+            } else if (statement instanceof Alter) {
                 if (!isAdmin && !hasResourcePrivilege) {
                     System.out.println("当前用户没有修改表格的权限！");
                     return;
@@ -1042,10 +1042,10 @@ public class    Processor {
                         System.out.print("    ");
                         output.add(selectItemStrings.get(x)+" ");
                         if(output.isEmpty()) {
-                            output.add(table_columns.get(x).getColumnName() + " ");
+                            output.add(selectItemStrings.get(x) + " ");
                         }else{
                             firstElement = output.get(0);
-                            firstElement+=table_columns.get(x).getColumnName()+" ";
+                            firstElement+=selectItemStrings.get(x)+" ";
                             output.set(0,firstElement);
                         }
                     }
@@ -1055,13 +1055,13 @@ public class    Processor {
                             for(int alIndex=0;alIndex<indexList.size();alIndex++){
                                 if(colIndex==indexList.get(alIndex)){
                                     //TODO:控制输出格式，使之对齐
-                                    System.out.print(all_values.get(rowIndex).get(colIndex));
+                                    System.out.print(all_values.get(rowIndex).get(indexList.get(alIndex)));
                                     System.out.print("    ");
-                                    if(colIndex==0) {
-                                        output.add(all_values.get(rowIndex).get(colIndex) + " ");
+                                    if(alIndex==0) {
+                                        output.add(all_values.get(rowIndex).get(indexList.get(alIndex)) + " ");
                                     }else{
                                         rowElement = output.get(rowIndex+1);
-                                        rowElement+=all_values.get(rowIndex).get(colIndex)+" ";
+                                        rowElement+=all_values.get(rowIndex).get(indexList.get(alIndex))+" ";
                                         output.set(rowIndex+1,rowElement);
                                     }
                                 }

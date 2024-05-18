@@ -27,33 +27,21 @@ public class userLogin {
         loginButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                try{
-                        UserMetaData currentUser = authenticate(countFiled.getText(),passwordField.getText());
-                        if(currentUser!=null){
-                            Processor.setCurrentUser(currentUser);
-                            openForm(currentUser);
-                            frame.dispose();
-                        }else{
-                            JOptionPane.showMessageDialog(frame,"用户名或者密码错误");
-                        }
-                    }catch(IOException | ClassNotFoundException ex){
-                        ex.printStackTrace();
-                        JOptionPane.showMessageDialog(frame,"无法获取用户数据");
-                }
-
-                try{
-                    UserMetaData currentUser = authenticate(countFiled.getText(),passwordField.getText());
-                    if(currentUser!=null){
-                       openForm(currentUser);
-                       frame.dispose();
-                    }else{
-                        JOptionPane.showMessageDialog(frame,"用户名或者密码错误");
+                try {
+                    UserMetaData currentUser = authenticate(countFiled.getText(), passwordField.getText());
+                    if (currentUser != null) {
+                        Processor.setCurrentUser(currentUser);
+                        openForm(currentUser);
+                        frame.dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "用户名或者密码错误");
                     }
-                }catch(IOException | ClassNotFoundException ex){
+                } catch (IOException | ClassNotFoundException ex) {
                     ex.printStackTrace();
-                    JOptionPane.showMessageDialog(frame,"无法获取用户数据");
+                    JOptionPane.showMessageDialog(frame, "无法获取用户数据");
                 }
             }
+
             private UserMetaData authenticate(String username, String password) throws IOException, ClassCastException, ClassNotFoundException {
                 try {
                     // 尝试从文件中读取对象

@@ -37,7 +37,6 @@ public class Form {
     private JButton commit;
     private JPanel tablePanel;
     private JLabel userLabel;
-    private JTree tree1;
     private JButton newButton;
     private UserMetaData user;
 

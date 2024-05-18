@@ -65,7 +65,7 @@ public class Login {
     }
 
     public static void main(String[] args) {
-        FlatLightLaf.setup();
+        FlatDarkLaf.setup();
         Login login = new Login();
         login.frame = new JFrame("Login");
         login.frame.setContentPane(login.loginPanel);
