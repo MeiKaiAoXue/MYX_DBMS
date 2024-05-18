@@ -823,7 +823,7 @@ public class    Processor {
         System.out.println("处理update Table语句");
         String tableName = statement.getTable().getName();
         TableMetaData1 table = db.getTable(tableName);
-        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile("./" + tableName + ".txt");
+        List<List<Object>> all_values = (List<List<Object>>) FileUtils.readObjectFromFile(currentDBName+"/" + tableName + ".txt");
         if (table == null) {
             Logging.log("Table " + tableName + " does not exist");
             Logging.log("Please create the table before inserting data");
@@ -919,7 +919,7 @@ public class    Processor {
         }
         //将all_values中的第rowIndex行的第changeColumnIndex列改为对应值
         all_values.get(rowIndex).set(changeColumnIndex,changeValue);
-        FileUtils.writeObjectToFile(all_values, "./" + tableName + ".txt");
+        FileUtils.writeObjectToFile(all_values, currentDBName+'/' + tableName + ".txt");
 
     }
 
