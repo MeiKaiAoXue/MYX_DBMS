@@ -104,3 +104,85 @@
 信息: User XYT dropped successfully
 5月 17, 2024 8:51:44 上午 org.myx.fileIo.Logging log
 信息: User XYT created successfully
+5月 17, 2024 9:39:29 上午 org.myx.fileIo.Logging log
+信息: Table STU already exists
+5月 17, 2024 9:41:18 上午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 17, 2024 9:42:41 上午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column SNO with value 1
+5月 17, 2024 9:43:25 上午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 17, 2024 9:43:51 上午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column SNO with value 2
+5月 17, 2024 9:43:59 上午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column SNO with value 3
+5月 17, 2024 10:17:23 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:44 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:44 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:45 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:45 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:45 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:45 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:45 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:45 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:46 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:22:46 上午 org.myx.fileIo.Logging log
+信息: 未找到对应删除的行
+5月 17, 2024 10:23:50 上午 org.myx.fileIo.Logging log
+信息: Value 'MSY' is not valid for column SNAME of type VARCHARR (2)
+5月 17, 2024 10:23:50 上午 org.myx.fileIo.Logging log
+信息: MODIFY COLUMN failed
+5月 17, 2024 10:35:18 上午 org.myx.fileIo.Logging log
+信息: User (YSX) created successfully
+5月 17, 2024 10:36:12 上午 org.myx.fileIo.Logging log
+信息: User XYT created successfully
+5月 17, 2024 10:38:30 上午 org.myx.fileIo.Logging log
+信息: User XYT created successfully
+5月 17, 2024 10:39:41 上午 org.myx.fileIo.Logging log
+信息: User XYT already exists
+5月 17, 2024 10:46:05 上午 org.myx.fileIo.Logging log
+信息: User YSX created successfully
+5月 17, 2024 10:49:43 上午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 17, 2024 11:02:30 上午 org.myx.fileIo.Logging log
+信息: User XYT created successfully
+5月 17, 2024 11:04:58 上午 org.myx.fileIo.Logging log
+信息: Table STU already exists
+5月 17, 2024 11:26:09 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: ALTER TABLE STU ADD COLUMN SSEX VARCHAR(5);
+5月 17, 2024 11:27:09 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: ALTER TABLE STU ADD COLUMN SSEX VARCHAR(5);
+5月 17, 2024 11:32:02 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: ALTER TABLE STU ADD COLUMN SSEX VARCHAR(5);
+5月 17, 2024 11:34:55 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: ALTER TABLE STU ADD COLUMN SSEX VARCHAR(5);
+5月 17, 2024 11:35:27 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: ALTER TABLE STU DROP COLUMN AGE;
+5月 17, 2024 11:36:33 上午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 17, 2024 11:39:15 上午 org.myx.fileIo.Logging log
+信息: User XYT created successfully
+5月 17, 2024 11:44:58 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: ALTER TABLE STU ADD COLUMN SSEX VARCHAR(5);
+5月 17, 2024 11:48:11 上午 org.myx.fileIo.Logging log
+信息: Error processing SQL: ALTER TABLE STU ADD COLUMN GRADE INT;
+5月 17, 2024 12:00:57 下午 org.myx.fileIo.Logging log
+信息: from的表或视图不存在
+5月 17, 2024 12:13:02 下午 org.myx.fileIo.Logging log
+信息: Constraint check failed for column AGE with value 40
+5月 17, 2024 12:15:34 下午 org.myx.fileIo.Logging log
+信息: User XYT dropped successfully
+5月 17, 2024 12:15:43 下午 org.myx.fileIo.Logging log
+信息: User XYT created successfully
+5月 17, 2024 12:33:20 下午 org.myx.fileIo.Logging log
+信息: Error processing SQL: 
