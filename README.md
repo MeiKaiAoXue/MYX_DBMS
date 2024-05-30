@@ -16,4 +16,6 @@
 </ol>
 
 sql语句具体的执行格式要求参考MAVEN中的后端test部分,需注意<strong>单引号及中英文输入法</strong>的使用，测试中要求使用英文输入法，中文输入法输入的符合会导致sql解析无法完成
+![image](https://github.com/MeiKaiAoXue/MYX_DBMS/assets/111553908/2b50ae15-2811-4f95-b4e7-bc180d3e84c4)
+
 <br>前端gui在显示当行 * 查询时列名会有格式错误
